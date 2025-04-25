@@ -1,6 +1,5 @@
 import React from 'react';
 import { Routes, Route } from 'react-router-dom';
-import './App.css';
 
 // Component imports
 import Layout from './components/Layout';
@@ -8,22 +7,27 @@ import Layout from './components/Layout';
 // Page imports
 import Home from './pages/Home';
 import Items from './pages/Items';
+import DocumentView from './pages/DocumentView';
+import LoginPage from './pages/Login';
 
 const App: React.FC = () => {
   return (
     <Routes>
-      <Route path="/" element={
-        <Layout>
-          <Home />
-        </Layout>
-      } />
-      <Route path="/items" element={
-        <Layout>
-          <Items />
-        </Layout>
-      } />
+      <Route path="/login" element={<LoginPage />} />
+      <Route
+        path="*"
+        element={
+          <Layout>
+            <Routes>
+              <Route path="/" element={<Home />} />
+              <Route path="/items" element={<Items />} />
+              <Route path="/document" element={<DocumentView />} />
+            </Routes>
+          </Layout>
+        }
+      />
     </Routes>
   );
 };
 
-export default App; 
+export default App;

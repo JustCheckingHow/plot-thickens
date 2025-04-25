@@ -1,5 +1,6 @@
 import React from 'react';
-import { Link } from 'react-router-dom';
+import Nav from '@/components/Nav/Nav';
+import Footer from '@/components/Footer/Footer';
 
 interface LayoutProps {
   children: React.ReactNode;
@@ -7,22 +8,16 @@ interface LayoutProps {
 
 const Layout: React.FC<LayoutProps> = ({ children }) => {
   return (
-    <div className="app">
-      <header className="header">
-        <h1>Sample Application</h1>
-        <nav>
-          <Link to="/" className="nav-link">Home</Link>
-          <Link to="/items" className="nav-link">Items</Link>
-        </nav>
-      </header>
-      
-      <main className="content">
+    <div className="app flex flex-column bg-zinc-900 text-white dark" style={{
+      flexDirection: "column",
+      minHeight: "100vh"
+    }}>
+      <Nav/>      
+      <main className="content container mx-auto py-4">
         {children}
       </main>
       
-      <footer className="footer">
-        <p>FastAPI + React Example Application</p>
-      </footer>
+      <Footer/>
     </div>
   );
 };
