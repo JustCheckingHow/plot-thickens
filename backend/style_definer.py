@@ -1,6 +1,7 @@
 from agents import Agent, Runner
 from loguru import logger
 import os
+from opik import track
 
 STYLE_AGENT_INSTRUCTIONS = """
     You are an experienced book editor. 
@@ -32,6 +33,7 @@ class StyleDefiner:
         )
         self.runner = Runner()
 
+    @track(name="define_style")
     async def define_style(
         self,
         book_text: str,
