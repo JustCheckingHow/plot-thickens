@@ -12,5 +12,15 @@ const axiosInstance = axios.create({
     withCredentials: true
 });
 
-
 export default axiosInstance;
+
+function getWebSocketUrl(path: string = ""): string {
+    let wsUrl = API_URL.replace(/^http/, "ws");
+    if (path && !wsUrl.endsWith("/")) wsUrl += "/";
+    return wsUrl + path;
+}
+
+export function connectWebSocket(path: string = ""): WebSocket {
+    const ws = new WebSocket(getWebSocketUrl(path));
+    return ws;
+}
