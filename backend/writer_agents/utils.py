@@ -1,6 +1,7 @@
 from agents import function_tool
 from typing_extensions import TypedDict
-from typing import Callable
+from typing import Callable, Union, Awaitable
+import inspect
 
 class InsertComment(TypedDict):
     text: str
@@ -8,9 +9,9 @@ class InsertComment(TypedDict):
     position: int
 
 
-def insert_comment(callback: Callable) -> Callable:
+def insert_comment(callback: Union[Callable, Awaitable]) -> Callable:
     @function_tool
-    def _inner(comment: InsertComment) -> str:
+    async def _inner(comment: InsertComment) -> str:
         """
         Insert a comment into the text at the given position.
 
@@ -22,10 +23,12 @@ def insert_comment(callback: Callable) -> Callable:
         Returns:
             The text with the comment inserted.
         """
-        return callback(
-            comment["text"],
-            comment["text"][: comment["position"]]
-            + f"{{{comment['comment']}}}"
-            + comment["text"][comment["position"] :]
-        )
+        formatted_text = comment["text"][:comment["position"]] + f"{{{comment['comment']}}}" + comment["text"][comment["position"]:]
+        
+        if inspect.iscoroutinefunction(callback):
+            return await callback(comment["text"], formatted_text)
+        else:
+            # For regular callbacks, just call it normally
+            return callback(comment["text"], formatted_text)
+    
     return _inner
