@@ -1,7 +1,7 @@
 import axios from "axios";
 
 
-export const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:6055';
+export const API_URL = import.meta.env.VITE_API_URL || 'https://api.justcheckinghow.com/';
 
 const axiosInstance = axios.create({
     baseURL: API_URL,
