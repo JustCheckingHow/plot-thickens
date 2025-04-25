@@ -9,6 +9,7 @@ import Home from './pages/Home';
 import Items from './pages/Items';
 import DocumentView from './pages/DocumentView';
 import LoginPage from './pages/Login';
+import { Toaster } from "sonner";
 
 const App: React.FC = () => {
   return (
@@ -18,6 +19,7 @@ const App: React.FC = () => {
         path="*"
         element={
           <Layout>
+            <Toaster />
             <Routes>
               <Route path="/" element={<Home />} />
               <Route path="/items" element={<Items />} />
@@ -25,7 +27,7 @@ const App: React.FC = () => {
             </Routes>
           </Layout>
         }
-      />
+      />  
     </Routes>
   );
 };
