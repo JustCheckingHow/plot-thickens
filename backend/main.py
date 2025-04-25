@@ -88,9 +88,4 @@ async def websocket_style_guard(websocket: WebSocket):
 
 if __name__ == "__main__":
     import uvicorn
-<<<<<<< HEAD
-
     uvicorn.run(app, host="0.0.0.0", port=8000)
-=======
-    uvicorn.run(app, host="0.0.0.0", port=8000)
->>>>>>> 2370990d7f49f4735fbfe6b4c7230f685d7ab1f7
