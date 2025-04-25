@@ -4,6 +4,7 @@ from writer_agents.style_inspector import StyleGuard
 from style_definer import StyleDefiner
 from pydantic import BaseModel
 from typing import Optional
+from loguru import logger
 
 app = FastAPI()
 
@@ -78,6 +79,9 @@ async def websocket_style_guard(websocket: WebSocket):
                 
             # Process the text
             await style_guard.inspect_style(text)
+            
+            logger.info("Text processed.")
+            await websocket.send_json({"status": "done"})
             
     except WebSocketDisconnect:
         pass
