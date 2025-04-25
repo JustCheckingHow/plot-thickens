@@ -6,7 +6,6 @@ import inspect
 class InsertComment(TypedDict):
     text: str
     comment: str
-    position: int
 
 
 def insert_comment(callback: Union[Callable, Awaitable]) -> Callable:
@@ -18,7 +17,6 @@ def insert_comment(callback: Union[Callable, Awaitable]) -> Callable:
         Args:
             text: The text to insert the comment into.
             comment: The comment to insert.
-            position: The position to insert the comment at.
 
         Returns:
             The text with the comment inserted.
