@@ -2,7 +2,7 @@ import Chapters from "@/components/Chapters/Chapters";
 import { StylePopup } from "@/components/StylePopup/StylePopup";
 import { Button } from "@/components/ui/button";
 import { NavigationMenu, NavigationMenuItem, NavigationMenuLink } from "@/components/ui/navigation-menu";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import useWebSocket from "react-use-websocket";
 import { API_URL } from "@/api/axios";
 
@@ -14,9 +14,22 @@ const DocumentView = () => {
     });
     const [response, setResponse] = useState("");
 
+    useEffect(() => {
+        const func = async () => {
+            const response = await sendMessage(JSON.stringify({
+                "styleText": styleText
+            }));
+            console.log(response);
+            setResponse(response.data);
+        }
+
+        func();
+        
+    }, [styleText])
+
     const analyzeText = async () => {
         const response = await sendMessage(JSON.stringify({
-            "styleText": styleText
+            "text": text
         }));
         console.log(response);
         setResponse(response.data);
