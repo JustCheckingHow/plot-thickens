@@ -63,13 +63,19 @@ const MermaidChart: React.FC<MermaidChartProps> = ({ chart }) => {
 
   useEffect(() => {
     if (containerRef.current) {
-      // Generate a unique id for each chart instance
       const uniqueId = `mermaid-diagram-${Math.random().toString(36).substr(2, 9)}`;
       containerRef.current.id = uniqueId;
-      // Clear previous diagram
       containerRef.current.innerHTML = '';
+<<<<<<< HEAD
       // Render new diagram
       mermaid.render(uniqueId, chart, containerRef.current);
+=======
+      mermaid.render(uniqueId, chart).then(({ svg }) => {
+        if (containerRef.current) {
+          containerRef.current.innerHTML = svg;
+        }
+      });
+>>>>>>> f90d45d3459b9616b7e632059eee998d4b9c1d28
     }
   }, [chart]);
 

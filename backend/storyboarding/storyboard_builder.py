@@ -1,10 +1,13 @@
 # backend/storyboarding/storyboard_builder.py
 
-from agents import Agent, Runner
+from agents import Agent, Runner, set_trace_processors
 from chunking_utils import chunk_text
-import os
 from loguru import logger
+from opik.integrations.openai.agents import OpikTracingProcessor
 
+import os
+
+set_trace_processors(processors=[OpikTracingProcessor()])
 CHARACTER_EXTRACTOR_PROMPT = """
 You are an expert at storyboard writer. 
 You are given a chapter of a book. 
@@ -15,7 +18,8 @@ in the text provided to you. Make sure you include the relationship each charact
 
 DO NOT include any characters that are not mentioned in the text.
 DO NOT add your judgement of the character's role, or their motivations.
-
+DO NOT write about what doesn't exist -- if there is no relationship between characters, don't mention.
+If given a list of characters from chapter chunks, combine them into consistent character summaries.
 Provide your response in the follwing format:
 
 # Character

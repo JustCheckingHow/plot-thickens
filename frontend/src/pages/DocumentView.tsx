@@ -8,8 +8,6 @@ import { API_URL } from "@/api/axios";
 import { toast } from "sonner";
 import crypto from "crypto";
 // import React from "react"
-//@ts-ignore
-import Mermaid from "react-mermaid2";
 import MermaidChart from "@/components/MermaindChart";
 
 
@@ -18,7 +16,7 @@ const DocumentView = () => {
     const [styleText, setStyleText] = useState('Write in style of Phillip K. Dick');
     const { sendMessage, lastMessage } = useWebSocket(API_URL.replace(/^http/, "ws") + "/api/style-guard", {
     });
-    const [comment, setComment] = useState('');
+    const [comment, __] = useState('');
     const chart = `
     graph TD
         CygnusX14_ThirdMoon-->|setting|CygnusX14_ThirdMoon
@@ -28,15 +26,16 @@ const DocumentView = () => {
     const [commentsDict, setApiCommentsDict] = useState({});
 
     useEffect(() => {
-        if(lastMessage && lastMessage.original_text) {
-            const hash8byte = crypto.createHash('md5').update(lastMessage.original_text).digest('hex').slice(0, 8);
+        if (lastMessage && typeof lastMessage.data === 'object' && lastMessage.data.original_text) {
+            const { original_text, comment } = lastMessage.data;
+            const hash8byte = crypto.createHash('md5').update(original_text).digest('hex').slice(0, 8);
             setApiCommentsDict({
                 ...commentsDict,
-                [hash8byte]: lastMessage.comment
+                [hash8byte]: comment
             });
             text.replace(
-                lastMessage.original_text, 
-                `<comment id=${hash8byte}>{{${lastMessage.original_text}}}</comment>`
+                original_text,
+                `<comment id=${hash8byte}>{{${original_text}}}</comment>`
             );
         }
     }, [lastMessage]);
@@ -56,9 +55,9 @@ const DocumentView = () => {
         }));
     }
 
-    const showComment = (id: string) => {
-        setComment(commentsDict[id]);
-    }
+    // const showComment = (id: string) => {
+    //     setComment(commentsDict[id] || '');
+    // }
 
     return (
         <div>
