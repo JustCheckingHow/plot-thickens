@@ -1,8 +1,18 @@
 from fastapi import FastAPI, Request, WebSocket, WebSocketDisconnect
 from fastapi.middleware.cors import CORSMiddleware
 from writer_agents.style_inspector import StyleGuard
+from style_definer import StyleDefiner
+from pydantic import BaseModel
+from typing import Optional
 
 app = FastAPI()
+
+
+class BookModel(BaseModel):
+    book_text: str
+    book_title: str
+    book_author: str = Optional[str]
+
 
 # Configure CORS
 app.add_middleware(
@@ -13,9 +23,19 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+
 @app.get("/api/health")
 async def health_check():
     return {"status": "ok"}
+
+
+@app.post("/api/style-define")
+async def style_define(request: Request):
+    style_definer = StyleDefiner()
+    data = await request.json()
+    return await style_definer.define_style(data["book_text"])
+
+
 
 @app.websocket("/api/style-guard")
 async def websocket_style_guard(websocket: WebSocket):
@@ -64,4 +84,9 @@ async def websocket_style_guard(websocket: WebSocket):
 
 if __name__ == "__main__":
     import uvicorn
+<<<<<<< HEAD
+
     uvicorn.run(app, host="0.0.0.0", port=8000)
+=======
+    uvicorn.run(app, host="0.0.0.0", port=8000)
+>>>>>>> 2370990d7f49f4735fbfe6b4c7230f685d7ab1f7
