@@ -1,6 +1,7 @@
 from agents import Agent, Runner
 from .utils import insert_comment
 from typing import Callable, Optional, Union, Awaitable
+import os
 
 
 class StyleGuard:
@@ -20,7 +21,8 @@ Remember that the text could be a background text, so comment only on stark devi
             "Style Inspector",
             tools=tools,
             instructions=self.prompt,
-            model="o4-mini"
+            # model="o4-mini"
+            model=os.environ.get("STYLE_GUARD_MODEL", "gpt-4o")
         )
         self.runner = Runner()
 
