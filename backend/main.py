@@ -4,7 +4,7 @@ from writer_agents.style_inspector import StyleGuard
 from style_definer import StyleDefiner
 from storyboarding.storyboard_builder import StoryBoardBuilder
 from pydantic import BaseModel
-from typing import Optional
+from typing import Optional, List
 from loguru import logger
 
 app = FastAPI()
@@ -22,10 +22,14 @@ class ChapterRequest(BaseModel):
     overlap: int = 0
 
 
-class ChapterStoryboard(BaseModel):
+class Storyboard(BaseModel):
     character_summaries: str
     location_summaries: str
-    character_relationship_graph: str
+    character_relationship_graph: Optional[str] = None
+
+
+class FinalStoryboardRequest(BaseModel):
+    chapter_storyboards: List[Storyboard]
 
 
 # Configure CORS
@@ -52,7 +56,38 @@ async def style_define(request: Request) -> str:
 
 
 @app.post("/api/storyboard")
-async def storyboard(chapter_request: ChapterRequest) -> ChapterStoryboard:
+async def storyboard(storyboard_request: FinalStoryboardRequest) -> Storyboard:
+    """Returns a Storyboard object that contains the character summaries, location summaries, and character relationship graph for a book"""
+    storyboard_builder = StoryBoardBuilder()
+    chapter_character_summaries = [
+        chapter_storyboard.character_summaries
+        for chapter_storyboard in storyboard_request.chapter_storyboards
+    ]
+    chapter_location_summaries = [
+        chapter_storyboard.location_summaries
+        for chapter_storyboard in storyboard_request.chapter_storyboards
+    ]
+
+    character_summaries = await storyboard_builder._extract_chapter_characters(
+        f"Here are the character summaries for the book. Combine them into a single summary: {chapter_character_summaries}"
+    )
+    location_summaries = await storyboard_builder._extract_chapter_locations(
+        f"Here are the location summaries for the book. Combine them into a single summary: {chapter_location_summaries}"
+    )
+    character_relationship_graph = (
+        await storyboard_builder.create_character_relationship_graph(
+            character_summaries
+        )
+    )
+    return {
+        "character_relationship_graph": character_relationship_graph,
+        "character_summaries": character_summaries,
+        "location_summaries": location_summaries,
+    }
+
+
+@app.post("/api/chapter-storyboard")
+async def chapter_storyboard(chapter_request: ChapterRequest) -> Storyboard:
     """Returns a ChapterStoryboard object that contains the character summaries, location summaries, and character relationship graph for a chapter"""
     storyboard_builder = StoryBoardBuilder()
     chapter_loc_char_summaries = await storyboard_builder.process_chapter(
@@ -104,7 +139,7 @@ async def websocket_style_guard(websocket: WebSocket):
                 if "text" not in data:
                     await websocket.send_json({"status": "style_prompt_updated"})
                     continue
-                    
+
             # Get text for checking
             text = data.get("text", "")
 
