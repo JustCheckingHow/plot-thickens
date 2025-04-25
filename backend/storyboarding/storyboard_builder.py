@@ -1,13 +1,11 @@
 # backend/storyboarding/storyboard_builder.py
 
-from agents import Agent, Runner, set_trace_processors
+from agents import Agent, Runner
 from chunking_utils import chunk_text
 from loguru import logger
-from opik.integrations.openai.agents import OpikTracingProcessor
-
+from opik import track
 import os
 
-set_trace_processors(processors=[OpikTracingProcessor()])
 CHARACTER_EXTRACTOR_PROMPT = """
 You are an expert at storyboard writer. 
 You are given a chapter of a book. 
@@ -56,7 +54,7 @@ Provide your response in the follwing format:
 
 class StoryBoardBuilder:
     def __init__(self):
-        self.model = os.environ.get("STORYBOARD_MODEL", "gpt-4.1-nano")
+        self.model = os.environ.get("STORYBOARD_MODEL", "gpt-4o")
 
         self.agents = {
             "character_extractor": Agent(
@@ -76,10 +74,12 @@ class StoryBoardBuilder:
         self.location_summaries = {}
         self.relationship_data = {}
 
+    @track(name="extract_chapter_characters")
     async def _extract_chapter_characters(self, prompt: str):
         response = await self.runner.run(self.agents["character_extractor"], prompt)
         return response.final_output
 
+    @track(name="extract_chapter_locations")
     async def _extract_chapter_locations(self, prompt: str):
         """Extract locations from a chapter"""
         response = await self.runner.run(self.agents["location_extractor"], prompt)
@@ -134,6 +134,7 @@ class StoryBoardBuilder:
             "location_summaries": summary_location_data,
         }
 
+    @track(name="create_character_relationship_graph")
     async def create_character_relationship_graph(self, character_summaries: str):
         """Create a Mermaid graph of relationships between characters from character summaries."""
         # Create a relationship extractor agent
