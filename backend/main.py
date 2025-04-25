@@ -63,7 +63,7 @@ async def storyboard(chapter_request: ChapterRequest):
 async def websocket_style_guard(websocket: WebSocket):
     async def send_comment(original_text, text_with_comments):
         await websocket.send_json(
-            {"original_text": original_text, "text_with_comments": text_with_comments}
+            {"original_text": original_text, "comment": text_with_comments}
         )
         return text_with_comments
 
@@ -88,7 +88,10 @@ async def websocket_style_guard(websocket: WebSocket):
                 style_guard = StyleGuard(
                     style_prompt=style_prompt, callback=send_comment
                 )
-
+                if "text" not in data:
+                    await websocket.send_json({"status": "style_prompt_updated"})
+                    continue
+                    
             # Get text for checking
             text = data.get("text", "")
 

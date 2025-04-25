@@ -23,7 +23,7 @@ def insert_comment(callback: Union[Callable, Awaitable]) -> Callable:
         Returns:
             The text with the comment inserted.
         """
-        formatted_text = comment["text"][:comment["position"]] + f"{{{{{comment['comment']}}}}}" + comment["text"][comment["position"]:]
+        formatted_text = comment['comment']
         
         if inspect.iscoroutinefunction(callback):
             return await callback(comment["text"], formatted_text)
