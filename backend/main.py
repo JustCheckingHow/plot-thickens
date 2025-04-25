@@ -117,12 +117,8 @@ async def websocket_style_guard(websocket: WebSocket):
 
     await websocket.accept()
 
-    # Receive style prompt once at connection establishment
-    initial_data = await websocket.receive_json()
-    style_prompt = initial_data.get("style_prompt", "")
-
     # Create StyleGuard instance
-    style_guard = StyleGuard(style_prompt=style_prompt, callback=send_comment)
+    style_guard = None
 
     try:
         while True:
@@ -145,6 +141,10 @@ async def websocket_style_guard(websocket: WebSocket):
 
             if not text:
                 await websocket.send_json({"error": "No text provided"})
+                continue
+
+            if style_guard is None:
+                await websocket.send_json({"error": "Style guard not initialized"})
                 continue
 
             # Process the text
