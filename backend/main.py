@@ -17,20 +17,6 @@ app.add_middleware(
 async def health_check():
     return {"status": "ok"}
 
-@app.post("/api/style-guard")
-async def style_guard(request: Request):
-    data = await request.json()
-    style_prompt = data.get("style_prompt", "")
-    text = data.get("text", "")
-    
-    if not text:
-        return {"error": "No text provided"}
-    
-    style_guard = StyleGuard(style_prompt=style_prompt)
-    result = style_guard.inspect_style(text)
-    
-    return {"result": result}
-
 @app.websocket("/api/style-guard")
 async def websocket_style_guard(websocket: WebSocket):
     async def send_comment(original_text, text_with_comments):
@@ -82,4 +68,4 @@ async def websocket_style_guard(websocket: WebSocket):
 
 if __name__ == "__main__":
     import uvicorn
-    uvicorn.run(app, host="0.0.0.0", port=8000) 
+    uvicorn.run(app, host="0.0.0.0", port=8000)
