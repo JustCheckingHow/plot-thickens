@@ -1,5 +1,6 @@
-from fastapi import FastAPI
+from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
+from writer_agents.style_inspector import StyleGuard
 
 app = FastAPI()
 
@@ -16,15 +17,12 @@ app.add_middleware(
 async def health_check():
     return {"status": "ok"}
 
-@app.get("/api/items")
-async def get_items():
-    # Example data
-    items = [
-        {"id": 1, "name": "Item 1"},
-        {"id": 2, "name": "Item 2"},
-        {"id": 3, "name": "Item 3"},
-    ]
-    return items
+@app.post("/api/style-guard")
+def style_guard(request: Request):
+    style_guard = StyleGuard(
+        style_prompt=request.json()["style_prompt"],
+    )
+
 
 if __name__ == "__main__":
     import uvicorn
