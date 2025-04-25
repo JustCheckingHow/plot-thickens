@@ -1,7 +1,6 @@
 import Chapters from "@/components/Chapters/Chapters";
 import { StylePopup } from "@/components/StylePopup/StylePopup";
 import { Button } from "@/components/ui/button";
-import { NavigationMenu, NavigationMenuItem, NavigationMenuLink } from "@/components/ui/navigation-menu";
 import { useEffect, useState } from "react";
 import useWebSocket from "react-use-websocket";
 import { API_URL } from "@/api/axios";
@@ -10,6 +9,13 @@ import crypto from "crypto";
 // import React from "react"
 import MermaidChart from "@/components/MermaindChart";
 
+type Chapters = [{
+    text: string;
+    character_summary: string;
+    order: number;
+    location_summary: string;
+    character_relationship_graph: string;
+}]
 
 const DocumentView = () => {
     const [text, setText] = useState('The hum of the Odyssey\'s life support was a constant, mournful drone in Captain Eva Rostova\'s ears. It was the sound of scarcity, the sound of a colony slowly, inevitably, dimming into oblivion. Below, on the surface of Cygnus X-1\'s third moon, Station Epsilon flickered like a dying ember. Power reserves were critical. The fusion core, once a vibrant heart, now sputtered, fed by dwindling deuterium mined from the moon\'s thin crust. Eva ran a calloused hand over the worn navigation console. Images of her daughter, Anya, played on a small, cracked screen beside it. Anya\'s face, thin but still bright-eyed, a stark reminder of what was at stake. "Find the light, Mama," Anya had whispered during their last comms burst, her voice frail. That light, they hoped, lay trillions of kilometers away, in the uncharted sector designated \'Xylos\'. Scans from ancient probes hinted at unusual energy signatures, isotopes unlike anything known in colonized space. Yo mama test xd. It was a long shot, a desperate gamble, but the only one they had left. Eva wasn\'t a natural explorer. She was an engineer, a pilot who preferred the predictable physics of orbital mechanics to the terrifying unknowns of deep space. But when the call went out for a volunteer to pilot the Odyssey, their last FTL-capable ship, towards the faint hope of Xylos, Eva hadn\'t hesitated. Her skills were necessary, yes, but it was Anya\'s face, and the faces of every child on Epsilon, that fueled her resolve. She carried the weight of a dying colony on her shoulders, and that weight was a constant, crushing pressure, yet it forged her determination into something unbreakable. Failure was not an option.');
@@ -22,6 +28,7 @@ const DocumentView = () => {
         CygnusX14_ThirdMoon-->|setting|CygnusX14_ThirdMoon
         UnchartedSector_Xylos-->|setting|UnchartedSector_Xylos
     `;
+    const [chapters, setChapters] = useState<Chapters>([]);
 
     const [commentsDict, setApiCommentsDict] = useState({});
 
