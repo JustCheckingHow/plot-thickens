@@ -57,12 +57,8 @@ async def websocket_style_guard(websocket: WebSocket):
                 continue
                 
             # Process the text
-            result = style_guard.inspect_style(text)
+            await style_guard.inspect_style(text)
             
-            # Send back the result if not already sent by the callback
-            if result:
-                await websocket.send_json({"result": result})
-                
     except WebSocketDisconnect:
         pass
 
