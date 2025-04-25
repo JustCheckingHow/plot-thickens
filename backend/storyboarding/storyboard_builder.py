@@ -11,10 +11,20 @@ You are given a chapter of a book.
 
 Your task is to extract all the characters, main or minor ones, and summarize their roles in the chapter.
 Remember to cite in verbatim their descriptions, their motivations, and their goals, if those are mentioned 
-in the text provided to you.
+in the text provided to you. Make sure you include the relationship each character has with other characters.
 
 DO NOT include any characters that are not mentioned in the text.
 DO NOT add your judgement of the character's role, or their motivations.
+
+Provide your response in the follwing format:
+
+# Character
+ ** Character Name **
+ ...
+ ** Character Description **
+ ... 
+ ** Character Relationships **
+<other character name>: <description of the relationship>
 """
 
 LOCATION_EXTRACTOR_PROMPT = """
@@ -78,7 +88,6 @@ class StoryBoardBuilder:
         chapter_chunked_data = []
         chunk_id = 0
         for chunk in chunk_text(chapter_text, chunk_size, overlap):
-            chunk_id += 1
             logger.info(
                 f"Processing chunk {chunk_id} of {len(chapter_text) // chunk_size}"
             )
@@ -95,6 +104,7 @@ class StoryBoardBuilder:
                     "character_chapter_summary": character_chapter_summary,
                 }
             )
+            chunk_id += 1
         combined_character_data = [
             d["character_chapter_summary"] for d in chapter_chunked_data
         ]
@@ -119,3 +129,44 @@ class StoryBoardBuilder:
             "character_summaries": summary_character_data,
             "location_summaries": summary_location_data,
         }
+
+    async def create_character_relationship_graph(self, character_summaries: str):
+        """Create a Mermaid graph of relationships between characters from character summaries."""
+        # Create a relationship extractor agent
+        relationship_agent = Agent(
+            "Relationship Extractor",
+            instructions="""
+You are an expert at analyzing character relationships in stories.
+Given character summaries, identify all relationships between characters.
+Format your response as a Mermaid graph diagram showing these relationships.
+
+For each relationship:
+1. Identify the characters involved
+2. Determine the nature of their relationship (friend, enemy, family, etc.)
+3. Note any key details about their interactions
+
+Output ONLY valid Mermaid graph syntax in the format:
+```mermaid
+graph TD
+    character1-->|relationship|character2
+    character3-->|relationship|character1
+    etc.
+```
+Use character names as node IDs and relationship types as edge labels.
+""",
+            model=self.model,
+        )
+
+        # Prepare the prompt with character summaries
+        prompt = f"""
+HERE ARE THE CHARACTER SUMMARIES:
+{character_summaries}
+
+Create a Mermaid relationship graph based on these summaries.
+"""
+
+        # Run the agent and get the response
+        response = await self.runner.run(relationship_agent, prompt)
+
+        # Extract the Mermaid graph from the response
+        return response.final_output

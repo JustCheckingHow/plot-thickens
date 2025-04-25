@@ -25,6 +25,7 @@ class ChapterRequest(BaseModel):
 class ChapterStoryboard(BaseModel):
     character_summaries: str
     location_summaries: str
+    character_relationship_graph: str
 
 
 # Configure CORS
@@ -43,20 +44,32 @@ async def health_check():
 
 
 @app.post("/api/style-define")
-async def style_define(request: Request):
+async def style_define(request: Request) -> str:
+    """Returns a string that describes the style of the book in detail"""
     style_definer = StyleDefiner()
     data = await request.json()
     return await style_definer.define_style(data["book_text"])
 
 
 @app.post("/api/storyboard")
-async def storyboard(chapter_request: ChapterRequest):
+async def storyboard(chapter_request: ChapterRequest) -> ChapterStoryboard:
+    """Returns a ChapterStoryboard object that contains the character summaries, location summaries, and character relationship graph for a chapter"""
     storyboard_builder = StoryBoardBuilder()
-    return await storyboard_builder.process_chapter(
-        chapter_request.chapter_text, 
-        chapter_request.chunk_size, 
-        chapter_request.overlap
+    chapter_loc_char_summaries = await storyboard_builder.process_chapter(
+        chapter_request.chapter_text,
+        chapter_request.chunk_size,
+        chapter_request.overlap,
     )
+    character_relationship_graph = (
+        await storyboard_builder.create_character_relationship_graph(
+            chapter_loc_char_summaries["character_summaries"]
+        )
+    )
+    return {
+        "character_relationship_graph": character_relationship_graph,
+        "character_summaries": chapter_loc_char_summaries["character_summaries"],
+        "location_summaries": chapter_loc_char_summaries["location_summaries"],
+    }
 
 
 @app.websocket("/api/style-guard")
@@ -101,10 +114,10 @@ async def websocket_style_guard(websocket: WebSocket):
 
             # Process the text
             await style_guard.inspect_style(text)
-            
+
             logger.info("Text processed.")
             await websocket.send_json({"status": "done"})
-            
+
     except WebSocketDisconnect:
         pass
 
