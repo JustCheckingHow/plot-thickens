@@ -5,7 +5,7 @@ services:
     build: ./backend
     container_name: fastapi-backend-prod
     ports:
-      - "8000:8000"
+      - "6002:8000"
     restart: always
     networks:
       - app-network
