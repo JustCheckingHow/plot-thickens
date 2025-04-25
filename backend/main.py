@@ -32,7 +32,8 @@ async def health_check():
 @app.post("/api/style-define")
 async def style_define(request: Request):
     style_definer = StyleDefiner()
-    return await style_definer.define_style(request.json()["book_text"])
+    data = await request.json()
+    return await style_definer.define_style(data["book_text"])
 
 
 @app.post("/api/style-guard")

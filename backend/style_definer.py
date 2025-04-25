@@ -1,4 +1,5 @@
 from agents import Agent, Runner
+from loguru import logger
 import os
 
 STYLE_AGENT_INSTRUCTIONS = """
@@ -57,13 +58,14 @@ class StyleDefiner:
         # Process each chunk and collect results
         chunk_results = []
         for i, chunk in enumerate(chunks):
-            print(f"Processing style of chunk {i+1}/{len(chunks)}...")
+            logger.info(f"Processing style of chunk {i+1}/{len(chunks)}...")
             result = await self.runner.run(
                 self.agent, f"CHUNK {i+1}/{len(chunks)}:\n\n{chunk}"
             )
             chunk_results.append(result.final_output)
 
         # Ask the agent to synthesize all results
+        logger.info("Synthesizing style results...")
         synthesis_prompt = f"I've analyzed {len(chunks)} chunks of a book separately. Here are the individual style analyses:\n\n"
         for i, result in enumerate(chunk_results):
             synthesis_prompt += f"CHUNK {i+1} ANALYSIS:\n{result}\n\n"
@@ -83,6 +85,6 @@ if __name__ == "__main__":
         result = await style_definer.define_style(
             book_text, chunk_size=1000, max_chunks=3
         )
-        print(result)
+        logger.info(result)
 
     asyncio.run(main())
