@@ -69,11 +69,7 @@ const MermaidChart: React.FC<MermaidChartProps> = ({ chart }) => {
       // Clear previous diagram
       containerRef.current.innerHTML = '';
       // Render new diagram
-      mermaid.render(uniqueId, chart, (svgCode: string) => {
-        if (containerRef.current) {
-          containerRef.current.innerHTML = svgCode;
-        }
-      });
+      mermaid.render(uniqueId, chart, containerRef.current);
     }
   }, [chart]);
 
