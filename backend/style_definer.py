@@ -23,7 +23,7 @@ STYLE_AGENT_INSTRUCTIONS = """
 
 class StyleDefiner:
     def __init__(self):
-        self.model = os.getenv("STYLE_DEFINE_MODEL", "gpt-4o")
+        self.model = os.getenv("STYLE_DEFINE_MODEL", "o4-mini")
         self.agent = Agent(
             name="Style Define Agent",
             instructions=STYLE_AGENT_INSTRUCTIONS,
