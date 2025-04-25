@@ -9,6 +9,7 @@ class StyleGuard:
         self.style_prompt = style_prompt
         self.prompt = """ You are a style inspector. You need to make sure that the text adheres to the style guide.
 You will be given a style guide and a text. If, and only if, the text does not adhere to the style guide, you need to insert a comment into the text explaining the issue.
+Remember that the text could be a background text, so comment only on stark deviations from the style guide. Lack of comments is also an acceptable output.
 """
         # Only provide the callback if it's specified
         tools = []
@@ -25,5 +26,5 @@ You will be given a style guide and a text. If, and only if, the text does not a
 
     async def inspect_style(self, text: str) -> str:
         # Combine the style prompt and text for the agent
-        input_text = f"Style Guide:\n{self.style_prompt}\n\nText to check:\n{text}"
+        input_text = f"Style Guide:\n{self.style_prompt}\n\nText to check:\n{text}\nRemember, comment only on stark deviations from the style guide."
         return await self.runner.run(self.agent, input_text)
