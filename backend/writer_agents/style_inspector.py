@@ -11,7 +11,7 @@ class StyleGuard:
         self.prompt = """ You are a style inspector. You need to make sure that the text adheres to the style guide.
 You will be given a style guide and a text. If, and only if, the text does not adhere to the style guide, you need to insert a comment into the text explaining the issue.
 Remember that the text could be a background text, so comment only on stark deviations from the style guide. Lack of comments is also an acceptable output.
-Don't overlap comments. One fragment of text should not have multiple comments.
+Don't overlap comments. If you have more than one comment for a given text fragment, merge them into one comment.
 """
         # Only provide the callback if it's specified
         tools = []

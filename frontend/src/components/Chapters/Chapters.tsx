@@ -39,7 +39,7 @@ const Chapters = () => {
   return (
     <div className="relative">
     <Carousel setApi={setApi}>
-      <CarouselContent className="gap-2">
+      <CarouselContent className="gap-4">
         {chaptersList.map(chapter => (
           <CarouselItem key={chapter.id} className="basis-1/6 bg-zinc-800 px-4 py-4">
             <div className="flex flex-col gap-2">
