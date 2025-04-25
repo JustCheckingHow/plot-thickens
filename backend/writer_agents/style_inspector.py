@@ -1,9 +1,9 @@
-from agents import Agent
+from agents import Agent, Runner
 from .utils import insert_comment
 from typing import Callable, Optional, Union, Awaitable
 
 
-class StyleGuard(Agent):
+class StyleGuard:
     def __init__(self, style_prompt: str, callback: Optional[Union[Callable, Awaitable]] = None):
         super().__init__()
         self.style_prompt = style_prompt
@@ -16,13 +16,14 @@ You will be given a style guide and a text. If, and only if, the text does not a
             tools = [insert_comment(callback)]
             
         self.agent = Agent(
-            name="Style Inspector",
+            "Style Inspector",
             tools=tools,
             instructions=self.prompt,
             model="o4-mini"
         )
+        self.runner = Runner()
 
-    def inspect_style(self, text: str) -> str:
+    async def inspect_style(self, text: str) -> str:
         # Combine the style prompt and text for the agent
         input_text = f"Style Guide:\n{self.style_prompt}\n\nText to check:\n{text}"
-        return self.agent.run(input_text)
+        return await self.runner.run(self.agent, input_text)
