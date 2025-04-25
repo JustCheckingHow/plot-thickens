@@ -14,11 +14,12 @@ import { Textarea } from "@/components/ui/textarea"
 import { Label } from "@/components/ui/label"
 
 export function StylePopup({styleText, setStyleText}: {styleText: string, setStyleText: (style: string) => void}) {
-  const [open, setOpen] = React.useState(false)
+  const [open, setOpen] = React.useState(false);
+  const [text, setText] = React.useState(styleText);
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    setStyleText((e.target as HTMLFormElement).styleText.value);
+    setStyleText(text);
     setOpen(false);
   };
 
@@ -31,12 +32,12 @@ export function StylePopup({styleText, setStyleText}: {styleText: string, setSty
         <DialogContent className="sm:max-w-[425px]">
           <DialogHeader>
             <DialogTitle>Edit Text Style</DialogTitle>
-            <form className={cn("grid items-start gap-4")} onSubmit={(e) => handleSubmit(e)}>
+            <form className={cn("grid items-start gap-4")} onSubmit={handleSubmit}>
               <div className="grid gap-2 mt-4">
                 <Label htmlFor="styleText">Text Style</Label>
-                <Textarea id="styleText" defaultValue={styleText} />
+                <Textarea id="styleText" defaultValue={styleText} onChange={(e) => setText(e.target.value)} />
               </div>
-              <Button type="submit">Save changes</Button>
+              <Button type="submit" className="w-full">Save changes</Button>
             </form>
             <DialogDescription>
               Make changes to your profile here. Click save when you're done.
