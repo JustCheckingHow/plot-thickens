@@ -4,3 +4,4 @@ pydantic==2.11.3
 openai-agents==0.0.13
 loguru==0.7.3
 opik==1.7.11
+websockets==15.0.1

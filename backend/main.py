@@ -36,19 +36,6 @@ async def style_define(request: Request):
     return await style_definer.define_style(data["book_text"])
 
 
-@app.post("/api/style-guard")
-async def style_guard(request: Request):
-    data = await request.json()
-    style_prompt = data.get("style_prompt", "")
-    text = data.get("text", "")
-    
-    if not text:
-        return {"error": "No text provided"}
-    
-    style_guard = StyleGuard(style_prompt=style_prompt)
-    result = style_guard.inspect_style(text)
-    
-    return {"result": result}
 
 @app.websocket("/api/style-guard")
 async def websocket_style_guard(websocket: WebSocket):
@@ -101,5 +88,9 @@ async def websocket_style_guard(websocket: WebSocket):
 
 if __name__ == "__main__":
     import uvicorn
+<<<<<<< HEAD
 
     uvicorn.run(app, host="0.0.0.0", port=8000)
+=======
+    uvicorn.run(app, host="0.0.0.0", port=8000)
+>>>>>>> 2370990d7f49f4735fbfe6b4c7230f685d7ab1f7
