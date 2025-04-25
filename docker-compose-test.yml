@@ -9,6 +9,8 @@ services:
     volumes:
       - ./backend:/app
     restart: always
+    env_file:
+      - .env
     networks:
       - app-network
 
@@ -17,6 +19,8 @@ services:
       context: ./frontend
       dockerfile: Dockerfile.dev
     container_name: react-frontend
+    env_file:
+      - .env
     ports:
       - "3000:3000"
     volumes:
