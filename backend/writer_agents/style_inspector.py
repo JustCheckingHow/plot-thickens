@@ -29,5 +29,5 @@ Don't overlap comments. If you have more than one comment for a given text fragm
 
     async def inspect_style(self, text: str) -> str:
         # Combine the style prompt and text for the agent
-        input_text = f"Style Guide:```\n{self.style_prompt}\n```\n\nText to check:\n```\n{text}\n```\nRemember, comment only on stark deviations from the style guide."
+        input_text = f"Style Guide:```\n{self.style_prompt}\n```\n\nText to check:\n```\n{text}\n```\nRemember, comment only on stark deviations from the style guide - but all deviations are important."
         return await self.runner.run(self.agent, input_text)
