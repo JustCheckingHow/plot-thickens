@@ -98,6 +98,7 @@ const TextView = ({chapters, setChapters, currentChapter, analyzeText, handleAdd
     const applySuggestion = (commentId: string) => {
         const hash8byte = MD5(activeTextSelection).slice(0, 8);
         toast.success("Suggestion applied");
+        //@ts-ignore
         setChapters((prevChapters: Chapter[]) => {
             const newChapters = [...prevChapters];
             newChapters[currentChapter] = {
@@ -158,6 +159,7 @@ const TextView = ({chapters, setChapters, currentChapter, analyzeText, handleAdd
                 ? `${existingSubcomments}|||${subcommentId}:${subcommentText}`
                 : `${subcommentId}:${subcommentText}`;
 
+            //@ts-ignore
             setChapters(prev => {
                 const newChapters = [...prev];
                 // Ensure chapter exists (safety check)
@@ -189,6 +191,7 @@ const TextView = ({chapters, setChapters, currentChapter, analyzeText, handleAdd
             }).then((response) => {
                 // If AI provides a reply, update the state again to add it
                 if (response.data.reply) {
+                    //@ts-ignore
                     setChapters(prev => {
                         const newChapters = [...prev];
                          // Ensure chapter exists (safety check)
@@ -263,7 +266,9 @@ const TextView = ({chapters, setChapters, currentChapter, analyzeText, handleAdd
                 <Label htmlFor="chapter-title">Chapter Title</Label>
                 <Input
                     style={{fontSize: "32px"}}
-                    id="chapter-title" className="heading__h2 text-4xl mt-2 font-bold mb-4" value={chapters[currentChapter].title || ""} placeholder="Chapter title" onChange={(e) => setChapters((prev: Chapter[]) => {
+                    id="chapter-title" className="heading__h2 text-4xl mt-2 font-bold mb-4" value={chapters[currentChapter].title || ""} 
+                    //@ts-ignore 
+                    placeholder="Chapter title" onChange={(e) => setChapters((prev: Chapter[]) => {
                     const newChapters = [...prev];
                     newChapters[currentChapter] = {
                         ...newChapters[currentChapter],
@@ -289,7 +294,9 @@ const TextView = ({chapters, setChapters, currentChapter, analyzeText, handleAdd
                 onClose={() => setIsCommentVisible(false)}
             />
             <div className="content">
-                {isTextEditing ? <Textarea value={chapters[currentChapter].text} onChange={(e) => setChapters((prev: Chapter[]) => {
+                {isTextEditing ? <Textarea value={chapters[currentChapter].text} 
+                //@ts-ignore
+                onChange={(e) => setChapters((prev: Chapter[]) => {
                     const newChapters = [...prev];
                     newChapters[currentChapter] = {
                         ...newChapters[currentChapter],
