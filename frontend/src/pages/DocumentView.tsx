@@ -20,7 +20,7 @@ const DocumentView = () => {
     });
     const [comment, setComment] = useState('');
     const [activeTextSelection, setActiveTextSelection] = useState('');
-    const [chart, setChart] = useState(`
+    const [chart, __] = useState(`
 graph TD
     Eva-->|mother|Anya
     Anya-->|daughter|Eva
