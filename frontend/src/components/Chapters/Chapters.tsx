@@ -2,6 +2,7 @@ import { Carousel, CarouselItem, CarouselContent, CarouselPrevious, CarouselNext
 import {useEffect, useState} from "react"
 import { Chapter } from "@/types/Chapter";
 import { Button } from "@/components/ui/button";
+import { Trash } from "lucide-react";
 
 const Chapters = ({chapters, handleAddnewChapter, changeChapter, currentChapter, removeChapter}: {chapters: Chapter[], handleAddnewChapter: () => void, changeChapter: (order: number) => void, currentChapter: number, removeChapter: (order: number) => void}) => {
     const [api, setApi] = useState<CarouselApi>()
@@ -27,14 +28,16 @@ const Chapters = ({chapters, handleAddnewChapter, changeChapter, currentChapter,
           <CarouselItem key={chapter.order} onClick={() => {
             changeChapter(chapter.order)
           }} className={"relative basis-1/6 px-4 py-4" + (currentChapter === chapter.order ? " bg-zinc-600" : " bg-zinc-700")}>
-            <div className="absolute top-0 right-0" onClick={() => removeChapter(chapter.order)}>x</div>
+            <Button variant="destructive" size="icon" onClick={() => removeChapter(chapter.order)} className="absolute top-[-4px] right-[-4px]">
+              <Trash className="h-4 w-4" />
+            </Button>
             <div className="flex flex-col gap-2">
               <h3 className="text-lg font-semibold">{chapter.title}</h3>
             </div>
           </CarouselItem>
         ))}
         <CarouselItem className="basis-1/6 px-4 py-4 bg-zinc-700 items-center justify-center flex">
-            <Button onClick={handleAddnewChapter}>Add new chapter</Button>
+            <Button variant="outline" onClick={handleAddnewChapter}>Add new chapter</Button>
         </CarouselItem>
       </CarouselContent>
       <CarouselPrevious />
