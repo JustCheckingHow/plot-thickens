@@ -1,0 +1,16 @@
+@use "@/scss/variables";
+
+*{
+    font-family: variables.$headingFont;
+    box-sizing: border-box;
+}
+body{
+    background-color: #f7ebe4;
+    color: #151d1a;
+}
+.container{
+    width: 100%;
+    max-width: 860px;
+    margin: 0 auto;
+    position: relative;
+}

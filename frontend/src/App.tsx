@@ -10,7 +10,7 @@ import Items from './pages/Items';
 import DocumentView from './pages/DocumentView';
 import LoginPage from './pages/Login';
 import { Toaster } from "sonner";
-import "./custom.css";
+import "./global.scss";
 
 const App: React.FC = () => {
   return (

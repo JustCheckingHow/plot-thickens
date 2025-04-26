@@ -33,7 +33,7 @@ const Home: React.FC = () => {
   };
 
   return (
-    <div className="flex items-center justify-center min-h-[60vh]">
+    <div className="flex items-center justify-center min-h-[60vh] w-full">
       <Card className="w-full max-w-md p-8 flex flex-col items-center gap-6 shadow-lg border-zinc-700 bg-card/80">
         <Label className="text-xl text-center mb-2">Drag and drop your book to use it in our app</Label>
         <div className="w-full cursor-pointer border-dashed border-2 border-muted-foreground bg-background/40 hover:bg-background/70">

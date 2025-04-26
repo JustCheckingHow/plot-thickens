@@ -1,6 +1,5 @@
 import React from 'react';
 import Nav from '@/components/Nav/Nav';
-import Footer from '@/components/Footer/Footer';
 
 interface LayoutProps {
   children: React.ReactNode;
@@ -8,16 +7,13 @@ interface LayoutProps {
 
 const Layout: React.FC<LayoutProps> = ({ children }) => {
   return (
-    <div className="app flex flex-column bg-zinc-900 text-white dark" style={{
-      flexDirection: "column",
-      minHeight: "100vh"
+    <div className="app flex" style={{
+      minHeight: "100dvh",
+      background: "#f7ebe4"
     }}>
-      <Nav/>      
-      <main className="content container mx-auto py-4">
+      <main className="flex w-full">
         {children}
       </main>
-      
-      <Footer/>
     </div>
   );
 };

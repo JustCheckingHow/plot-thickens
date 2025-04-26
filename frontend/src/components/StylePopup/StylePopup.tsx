@@ -84,7 +84,7 @@ export function StylePopup({updateStylePrompt}: {updateStylePrompt: (style: stri
   return (
       <Dialog open={open} onOpenChange={setOpen}>
         <DialogTrigger asChild>
-          <Button variant="outline">Edit Text Style</Button>
+          <Button className="w-full bg-[#4b524b] text-white">Edit Text Style</Button>
         </DialogTrigger>
 
         <DialogContent className="sm:max-w-[425px]">

@@ -1,0 +1,22 @@
+// @use "@/styles/variables";
+
+.text-view{
+    padding: 48px 0 24px;
+}
+.content, .content p {
+    
+        font-size: 18px;
+        line-height: 1.75;
+        // font-family: variables.$text-font;
+    
+}
+
+.comment{
+    width: 100%;
+    max-width: 320px;
+    background-color: rgba(123, 133, 123, .5);
+    border: 1px solid #7b857b;
+    border-radius: 6px;
+    position: sticky;
+    left: calc(100% + 24px);
+}

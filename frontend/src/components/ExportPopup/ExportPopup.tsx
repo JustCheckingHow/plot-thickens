@@ -6,7 +6,7 @@ import { Label } from "@/components/ui/label";
 import { useState } from "react";
 import { toast } from "sonner";
 import { Buffer } from "buffer";
-
+import { FileText } from "lucide-react";
 
 const ExportPopup = ({content, comments}: {content: string, comments: Record<string, string>}) => {
     const [open, setOpen] = useState(false);
@@ -47,12 +47,14 @@ const ExportPopup = ({content, comments}: {content: string, comments: Record<str
     return (
         <Dialog open={open} onOpenChange={setOpen}>
         <DialogTrigger asChild>
-          <Button variant="outline">Export to Word</Button>
+
+            <Button size={"icon"}><FileText className="h-4 w-4" /></Button>
+
         </DialogTrigger>
 
-        <DialogContent className="sm:max-w-[425px]">
-          <DialogHeader>
-            <DialogTitle>Export to Word</DialogTitle>
+        <DialogContent className="sm:max-w-[425px] bg-white text-neutral-900 border border-neutral-200 shadow-xl">
+          <DialogHeader className="bg-white text-neutral-900">
+            <DialogTitle className="text-neutral-900">Export to Word</DialogTitle>
             <form className="grid items-start gap-4" onSubmit={(e) => {
                 e.preventDefault();
                 exportToDOCX();
