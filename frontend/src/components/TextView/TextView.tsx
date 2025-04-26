@@ -17,6 +17,8 @@ const TextView = ({chapters, setChapters, currentChapter, analyzeText, handleAdd
     const [comment, setComment] = useState('');
     const [activeTextSelection, setActiveTextSelection] = useState('');
     const pendingSubcommentsRef = useRef<Record<string, Set<string>>>({});
+    const [tooltipPosition, setTooltipPosition] = useState({ x: 0, y: 0 });
+    const [isCommentVisible, setIsCommentVisible] = useState(false);
 
     const handleEditText = () => {
         if(isTextEditing){
@@ -62,10 +64,20 @@ const TextView = ({chapters, setChapters, currentChapter, analyzeText, handleAdd
                     const target = e.currentTarget as HTMLElement;
                     const commentText = target.id;
                     const text = target.textContent || '';
+                    const rect = target.getBoundingClientRect();
                     
                     if (text && commentText) {
                         setComment(commentText);
                         setActiveTextSelection(text);
+                        
+                        // Position on right margin, aligned with the comment vertically
+                        const rightMarginPosition = {
+                            x: window.innerWidth - 340, // 300px width + 40px margin
+                            y: rect.top + window.scrollY
+                        };
+                        
+                        setTooltipPosition(rightMarginPosition);
+                        setIsCommentVisible(true);
                     }
                 });
             });
@@ -272,6 +284,9 @@ const TextView = ({chapters, setChapters, currentChapter, analyzeText, handleAdd
                 onApplySuggestion={applySuggestion}
                 onAddSubcomment={addSubcomment}
                 subcomments={parseSubcomments(chapters[currentChapter].comments[comment + '_subcomments'])}
+                position={tooltipPosition}
+                isVisible={isCommentVisible && !!comment}
+                onClose={() => setIsCommentVisible(false)}
             />
             <div className="content">
                 {isTextEditing ? <Textarea value={chapters[currentChapter].text} onChange={(e) => setChapters((prev: Chapter[]) => {
