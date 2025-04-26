@@ -30,14 +30,20 @@ class ChapterRequest(BaseModel):
     chunk_size: int = 1000
     overlap: int = 0
 
-
 class Storyboard(BaseModel):
     character_summaries: str
     location_summaries: str
     timeline_summaries: str
     character_relationship_graph: Optional[str] = None
     chapter_number: Optional[int] = None
-
+    plotpoints_summaries: str
+    
+class IncrementalStoryboardRequest(BaseModel):
+    chapter_number: int
+    chapter_text: str
+    chunk_size: int = 1000
+    overlap: int = 0
+    previous_storyboards: List[Storyboard]
 
 class FinalStoryboardRequest(BaseModel):
     chapter_storyboards: List[Storyboard]
@@ -197,6 +203,48 @@ async def chapter_storyboard(chapter_request: ChapterRequest) -> Storyboard:
         "chapter_number": chapter_request.chapter_number,
     }
 
+@app.post("/api/incremental-storyboard")
+async def incremental_storyboard(chapter_request: IncrementalStoryboardRequest) -> Storyboard:
+    """Returns a ChapterStoryboard object that contains the character summaries, location summaries, and character relationship graph for a chapter"""
+    storyboard_builder = StoryBoardBuilder()
+    chapter_character_summaries = ""
+    chapter_location_summaries = ""
+    chapter_timeline_summaries = ""
+    chapter_plotpoints_summaries = ""
+    
+    for chapter_storyboard in sorted(
+        chapter_request.previous_storyboards, key=lambda x: x.chapter_number
+    ):
+        chapter_character_summaries += f"Chapter {chapter_storyboard.chapter_number}:\n{chapter_storyboard.character_summaries}\n"
+        chapter_location_summaries += f"Chapter {chapter_storyboard.chapter_number}:\n{chapter_storyboard.location_summaries}\n"
+        chapter_timeline_summaries += f"Chapter {chapter_storyboard.chapter_number}:\n{chapter_storyboard.timeline_summaries}\n"
+        chapter_plotpoints_summaries += f"Chapter {chapter_storyboard.chapter_number}:\n{chapter_storyboard.plotpoints_summaries}\n"
+        
+    character_summaries = await storyboard_builder._extract_chapter_characters(
+        f"Here are the character summaries for the book: ```{chapter_character_summaries}```\n This is the new chapter text: ```{chapter_request.chapter_text}```\n Combine the previous character summaries with the new chapter text to create a new character summary for the chapter."
+    )
+    location_summaries = await storyboard_builder._extract_chapter_locations(
+        f"Here are the location summaries for the book: ```{chapter_location_summaries}```\n This is the new chapter text: ```{chapter_request.chapter_text}```\n Combine the previous location summaries with the new chapter text to create a new location summary for the chapter."
+    )
+    timeline_summaries = await storyboard_builder._build_timeline(
+        f"Here are the timeline summaries for the book: ```{chapter_timeline_summaries}```\n This is the new chapter text: ```{chapter_request.chapter_text}```\n Combine the previous timeline summaries with the new chapter text to create a new timeline summary for the chapter."
+    )
+    plotpoints_summaries = await storyboard_builder._extract_chapter_plotpoints(
+        f"Here are the plotpoints summaries for the book: ```{chapter_plotpoints_summaries}```\n This is the new chapter text: ```{chapter_request.chapter_text}```\n Combine the previous plotpoints summaries with the new chapter text to create a new plotpoints summary for the chapter."
+    )
+    character_relationship_graph = (
+        await storyboard_builder.create_character_relationship_graph(
+            chapter_character_summaries + f"\n\nThis is the new chapter text: ```{chapter_request.chapter_text}```\n"
+        )
+    )
+    return {
+        "character_relationship_graph": character_relationship_graph,
+        "character_summaries": character_summaries,
+        "location_summaries": location_summaries,
+        "timeline_summaries": timeline_summaries,
+        "plotpoints_summaries": plotpoints_summaries,
+    }
+    
 
 @app.websocket("/api/style-guard")
 async def websocket_style_guard(websocket: WebSocket):

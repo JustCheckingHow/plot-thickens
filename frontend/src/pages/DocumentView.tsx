@@ -20,6 +20,7 @@ import { Label } from "@/components/ui/label";
 import { Check, Edit, Loader2 } from "lucide-react";
 import { MD5 } from "@/lib/utils";
 import ExportPopup from "@/components/ExportPopup/ExportPopup";
+import MarkdownRenderer from "@/components/MarkdownRenderer";
 import { useLocation } from "react-router-dom";
 
 const DocumentView = () => {
@@ -288,7 +289,7 @@ const DocumentView = () => {
                     location_summary: response.data.location_summaries,
                     character_relationship_graph: response.data.character_relationship_graph,
                     timeline_summary: response.data.timeline_summaries,
-                    plotpoint_summary: response.data.plotpoint_summaries
+                    plotpoint_summary: response.data.plotpoints_summaries
                 };
                 return newChapters;
             });
@@ -299,6 +300,52 @@ const DocumentView = () => {
             setChapterAnalyzeLoading(false);
             toast.error('Failed to analyze chapter');
         })
+    }
+
+    const refineChapter = async (chapterNumber: number) => {
+        setChapterAnalyzeLoading(true);
+
+        const response = await axiosInstance.post('api/incremental-storyboard', {
+            chapter_text: chapters[chapterNumber].text,
+            chapter_number: chapters[chapterNumber].order,
+            previous_storyboards: chapters.slice(0, chapterNumber).map(chapter => ({
+                chapter_number: chapter.order,
+                character_summaries: chapter.character_summary,
+                location_summaries: chapter.location_summary,
+                character_relationship_graph: chapter.character_relationship_graph,
+                timeline_summaries: chapter.timeline_summary,
+                plotpoints_summaries: chapter.plotpoint_summary
+            }))
+        }).then((response) => {
+            const newChapterResponse: Chapter = {
+                character_summary: response.data.character_summaries,
+                location_summary: response.data.location_summaries,
+                character_relationship_graph: response.data.character_relationship_graph,
+                timeline_summary: response.data.timeline_summaries,
+                plotpoint_summary: response.data.plotpoints_summaries,
+                text: chapters[chapterNumber].text,
+                title: chapters[chapterNumber].title,
+                order: chapters[chapterNumber].order,
+                comments: chapters[chapterNumber].comments
+            }
+
+            setChapters(prev => {
+                const newChapters = [...prev];
+                newChapters[chapterNumber] = {
+                    ...newChapters[chapterNumber],
+                    ...newChapterResponse
+                };
+                return newChapters;
+            });
+            setChapterAnalyzeLoading(false);
+            toast.success(`Chapter "${newChapterResponse.title}" analyzed`);
+            return newChapterResponse;
+        }).catch(() => {
+            setChapterAnalyzeLoading(false);
+            toast.error('Failed to refine chapter');
+            return chapters[chapterNumber];
+        })
+        return response;
     }
 
     const resetBook = () => {
@@ -331,9 +378,9 @@ const DocumentView = () => {
         setCurrentView('comments');
         toast.success('Suggestion applied');
     }
-
-    const logicInspectChapters = async () => {
-        if (isTextEditing) {
+    
+    const logicInspectChapters = async (chapterNumber: number) => {
+        if(isTextEditing){
             toast.error('Please finish editing before summarizing');
             return;
         }
@@ -341,18 +388,24 @@ const DocumentView = () => {
         let character_summaries = "";
         let location_summaries = "";
 
-        for (let i = 0; i < chapters.length - 1; i++) {
-            if (chapters[i].character_summary == "" || chapters[i].location_summary == "") {
-                await analyzeChapter(i);
+        for(let i = 0; i < chapterNumber; i++){
+            let response: Chapter = chapters[i];
+            if(chapters[i].character_summary == "" || chapters[i].location_summary == ""){
+                response = await refineChapter(i);
             }
-            character_summaries += chapters[i].character_summary;
-            location_summaries += chapters[i].location_summary;
+            console.log("Adding character summary", response);
+            character_summaries += response.character_summary;
+            location_summaries += response.location_summary;
+        }
+
+        if (chapters[chapterNumber].character_summary == "" || chapters[chapterNumber].location_summary == ""){
+            await refineChapter(chapterNumber);
         }
 
         await logicInspect(JSON.stringify({
             character_summaries: character_summaries,
             location_summaries: location_summaries,
-            text: chapters[currentChapter].text
+            text: chapters[chapterNumber].text
         }));
     }
 
@@ -431,14 +484,14 @@ const DocumentView = () => {
                         </Menubar>
                     </div>
 
-                    {currentView === "location_summary" && <LocationSummary location_summary={chapters[currentChapter].location_summary} />}
-                    {currentView === "character_summary" && chapters[currentChapter].character_summary && <CharacterSummary character_summary={chapters[currentChapter].character_summary} />}
-                    {currentView === "character_relationship_graph" && chapters[currentChapter].character_relationship_graph ? <MermaidChart chart={chapters[currentChapter].character_relationship_graph} /> : <div>Loading...</div>}
+                    {currentView === "location_summary" && <LocationSummary location_summary={chapters[currentChapter].location_summary}/>}
+                    {currentView === "character_summary" && chapters[currentChapter].character_summary && <CharacterSummary character_summary={chapters[currentChapter].character_summary}/>}
+                    {currentView === "character_relationship_graph" && chapters[currentChapter].character_relationship_graph ? <MermaidChart chart={chapters[currentChapter].character_relationship_graph}/> : <div></div>}
                     {currentView === "timeline_summary" && (
                         <div className="mt-4">
                             <h3 className="text-lg font-medium mb-2">Timeline Summary</h3>
                             {chapters[currentChapter].timeline_summary ? (
-                                <p>{chapters[currentChapter].timeline_summary}</p>
+                                <MarkdownRenderer content={chapters[currentChapter].timeline_summary} />
                             ) : (
                                 <p className="text-sm text-zinc-400">No timeline information available yet. Analyze the chapter first.</p>
                             )}
@@ -448,7 +501,7 @@ const DocumentView = () => {
                         <div className="mt-4">
                             <h3 className="text-lg font-medium mb-2">Plot Points</h3>
                             {chapters[currentChapter].plotpoint_summary ? (
-                                <p>{chapters[currentChapter].plotpoint_summary}</p>
+                                <MarkdownRenderer content={chapters[currentChapter].plotpoint_summary} />
                             ) : (
                                 <p className="text-sm text-zinc-400">No plot point information available yet. Analyze the chapter first.</p>
                             )}
@@ -457,9 +510,19 @@ const DocumentView = () => {
                     {currentView === "comments" && (
                         <div>
                             <div className="flex gap-2 justify-center">
-                                <Button onClick={() => analyzeText(currentChapter)}>Style text Analyze</Button>
-                                <Button onClick={() => analyzeGrammar(currentChapter)}>Grammar text Analyze</Button>
-                                {currentChapter > 0 && <Button onClick={logicInspectChapters}>Logic inspect</Button>}
+                                <Button onClick={() => analyzeGrammar(currentChapter)} disabled={chapterAnalyzeLoading}>
+                                    {chapterAnalyzeLoading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                                    Grammar text Analyze
+                                </Button>
+
+                                <Button onClick={() => analyzeText(currentChapter)} disabled={chapterAnalyzeLoading}>
+                                    {chapterAnalyzeLoading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                                    Style text Analyze
+                                </Button>
+                                {currentChapter > 0 && <Button onClick={() => logicInspectChapters(currentChapter)} disabled={chapterAnalyzeLoading}>
+                                    {chapterAnalyzeLoading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                                    Logic inspect
+                                </Button>}
                             </div>
                             <div className="mt-4 p-3 bg-zinc-700 rounded-md">
                                 <h3 className="text-sm font-medium mb-1">Feedback:</h3>
@@ -473,13 +536,13 @@ const DocumentView = () => {
                             </div>
                         </div>
                     )}
-
+{/* 
                     <div className="flex justify-center mt-[auto] gap-4 items-center pt-6">
                         <Button onClick={() => analyzeChapter(currentChapter)} disabled={chapterAnalyzeLoading}>
                             {chapterAnalyzeLoading && <Loader2 className="animate-spin" />}
                             Analyze Chapter
                         </Button>
-                    </div>
+                    </div> */}
                 </div>
             </div>
         </div>
