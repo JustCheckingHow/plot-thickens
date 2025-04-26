@@ -139,7 +139,8 @@ const Nav = ({
 const ProjectSelect = ({chapters, changeChapter}: {chapters: Chapter[]; changeChapter: (chapter: number) => void}) => {
     const [open, setOpen] = useState(false)
     const [value, setValue] = useState("");
-    const [chaptersLocal, setChaptersLocal] = useState([]);
+    type ChapterOption = { id: number; label: string; value: string };
+const [chaptersLocal, setChaptersLocal] = useState<ChapterOption[]>([]);
     console.log(chaptersLocal)
     useEffect(() => {
       setChaptersLocal(chapters.map((chapter) => ({
