@@ -15,7 +15,7 @@ async def markdown_to_docx_with_comments(request: MarkdownToWordRequest) -> byte
     """Converts markdown content to a Microsoft Word document with proper comments"""
 
     # Regular expression to find comments in the text <comment id=...></comment>
-    comment_pattern = re.compile(r"(.*?)<comment id=(.*?)>(.*?)</comment>", re.DOTALL)
+    comment_pattern = re.compile(r"(.*?)<comment id=(.*?)>(.*?)</comment>(.*?)(?=<comment|\Z)", re.DOTALL)
     # Regular expression to identify markdown headings
     heading_pattern = re.compile(r"^(#{1,6})\s+(.+?)$", re.MULTILINE)
 
@@ -24,65 +24,103 @@ async def markdown_to_docx_with_comments(request: MarkdownToWordRequest) -> byte
 
     # Process the content and extract comments
     remaining_text = request.markdown_content
-
-    while remaining_text:
-        # Look for the next comment
-        match = comment_pattern.search(remaining_text)
-
-        if not match:
-            # No more comments, add the remaining text with heading formatting
-            text_to_add = remaining_text
-            # Process any headings in the remaining text
-            lines = text_to_add.split("\n")
+    
+    # Find all comments in the text
+    matches = list(comment_pattern.finditer(remaining_text))
+    
+    if not matches:
+        # No comments in text, just process the markdown normally
+        lines = remaining_text.split("\n")
+        for line in lines:
+            heading_match = heading_pattern.match(line.strip())
+            if heading_match:
+                level = len(heading_match.group(1))
+                heading_text = heading_match.group(2).strip()
+                paragraph = doc.add_paragraph(heading_text)
+                paragraph.style = f"Heading {level}"
+            else:
+                line = line.strip()
+                if line:
+                    doc.add_paragraph(line)
+    else:
+        # Process each comment section
+        for match in matches:
+            text_before_comment = match.group(1)
+            comment_id = match.group(2)
+            comment_text = match.group(3)
+            text_after_comment = match.group(4)
+            
+            # Process text before comment
+            if text_before_comment:
+                lines = text_before_comment.split("\n")
+                for i, line in enumerate(lines):
+                    heading_match = heading_pattern.match(line.strip())
+                    if heading_match:
+                        level = len(heading_match.group(1))
+                        heading_text = heading_match.group(2).strip()
+                        paragraph = doc.add_paragraph(heading_text)
+                        paragraph.style = f"Heading {level}"
+                    else:
+                        line = line.strip()
+                        if line:
+                            # For the last line, we'll add the comment inline
+                            if i == len(lines) - 1:
+                                paragraph = doc.add_paragraph(line)
+                                # Add the comment directly
+                                run = paragraph.add_run(" ")  # Space after text
+                                run.add_comment(comment_text, author=request.author_name, initials="A")
+                                
+                                # If there's text after the comment on the same line, add it to the same paragraph
+                                if text_after_comment and text_after_comment.strip() and not text_after_comment.startswith("\n"):
+                                    first_line_after = text_after_comment.split("\n")[0].strip()
+                                    if first_line_after:
+                                        paragraph.add_run(first_line_after)
+                                        
+                                    # Process the rest of the text after the comment if it continues to new lines
+                                    if "\n" in text_after_comment:
+                                        rest_lines = text_after_comment.split("\n")[1:]
+                                        for rest_line in rest_lines:
+                                            rest_line = rest_line.strip()
+                                            if rest_line:
+                                                doc.add_paragraph(rest_line)
+                            else:
+                                doc.add_paragraph(line)
+            else:
+                # Comment is at the beginning of a line, add it to a new paragraph
+                paragraph = doc.add_paragraph()
+                run = paragraph.add_run("")  # Empty run
+                run.add_comment(comment_text, author=request.author_name, initials="A")
+                
+                # If there's text after the comment, add it to the same paragraph
+                if text_after_comment and text_after_comment.strip() and not text_after_comment.startswith("\n"):
+                    first_line_after = text_after_comment.split("\n")[0].strip()
+                    if first_line_after:
+                        paragraph.add_run(first_line_after)
+                    
+                    # Process the rest of the text after the comment if it continues to new lines
+                    if "\n" in text_after_comment:
+                        rest_lines = text_after_comment.split("\n")[1:]
+                        for rest_line in rest_lines:
+                            rest_line = rest_line.strip()
+                            if rest_line:
+                                doc.add_paragraph(rest_line)
+        
+        # Process any remaining text after the last comment
+        if matches[-1].end() < len(remaining_text):
+            remaining = remaining_text[matches[-1].end():]
+            lines = remaining.split("\n")
             for line in lines:
                 heading_match = heading_pattern.match(line.strip())
                 if heading_match:
-                    # Get heading level and text
                     level = len(heading_match.group(1))
                     heading_text = heading_match.group(2).strip()
-                    # Add as proper Word heading
                     paragraph = doc.add_paragraph(heading_text)
                     paragraph.style = f"Heading {level}"
                 else:
-                    # Add as normal paragraph if not empty
                     line = line.strip()
                     if line:
                         doc.add_paragraph(line)
-            break
-
-        # Add text before the comment with heading formatting
-        text_before_comment = match.group(1)
-        if text_before_comment:
-            lines = text_before_comment.split("\n")
-            for line in lines:
-                heading_match = heading_pattern.match(line.strip())
-                if heading_match:
-                    # Get heading level and text
-                    level = len(heading_match.group(1))
-                    heading_text = heading_match.group(2).strip()
-                    # Add as proper Word heading
-                    paragraph = doc.add_paragraph(heading_text)
-                    paragraph.style = f"Heading {level}"
-                else:
-                    # Add as normal paragraph if not empty
-                    line = line.strip()
-                    if line:
-                        doc.add_paragraph(line)
-
-        # Add a paragraph with comment
-        paragraph = doc.add_paragraph()
-        run = paragraph.add_run("⚓")  # Using an anchor symbol as comment marker
-
-        # Add the comment directly using the add_comment method
-        comment_id = match.group(2).strip("\"'")  # Remove quotes if present
-        comment_text = match.group(3)
-        run.add_comment(
-            f"{comment_text}", author=request.author_name, initials="A"
-        )
-
-        # Continue with text after this comment
-        remaining_text = remaining_text[match.end() :]
-
+                        
     # Save the document to a bytes buffer
     docx_buffer = io.BytesIO()
     doc.save(docx_buffer)
