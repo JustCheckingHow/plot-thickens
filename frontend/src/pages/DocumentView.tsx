@@ -465,6 +465,9 @@ const DocumentView = () => {
                 setCurrentChapter={setCurrentChapter}
                 removeChapter={removeChapter}
                 updateStylePrompt={updateStylePrompt}
+                analyzeChapter={analyzeChapter}
+                chapterAnalyzeLoading={chapterAnalyzeLoading}
+                setChapterAnalyzeLoading={setChapterAnalyzeLoading}
                 logicInspectChapters={logicInspectChapters}
                 analyzeGrammar={analyzeGrammar}
             />
