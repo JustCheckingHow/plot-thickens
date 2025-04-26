@@ -223,17 +223,17 @@ graph TD
         setCurrentChapter(chapters.length);
     }
 
-    const analyzeChapter = async () => {
+    const analyzeChapter = async (chapterNumber: number) => {
         setChapterAnalyzeLoading(true);
         await axiosInstance.post('api/chapter-storyboard', {
-            chapter_text: chapters[currentChapter].text,
-            chapter_number: chapters[currentChapter].order
+            chapter_text: chapters[chapterNumber].text,
+            chapter_number: chapters[chapterNumber].order
         }).then((response) => {
             console.log(response.data);
             setChapters(prev => {
                 const newChapters = [...prev];
-                newChapters[currentChapter] = {
-                    ...newChapters[currentChapter],
+                newChapters[chapterNumber] = {
+                    ...newChapters[chapterNumber],
                     character_summary: response.data.character_summaries,
                     location_summary: response.data.location_summaries,
                     character_relationship_graph: response.data.character_relationship_graph
@@ -268,9 +268,9 @@ graph TD
         let character_summaries = "";
         let location_summaries = "";
 
-        for(let i = 0; i < chapters.length; i++){
+        for(let i = 0; i < chapters.length-1; i++){
             if(chapters[i].character_summary == "" || chapters[i].location_summary == ""){
-                await analyzeText(i);
+                await analyzeChapter(i);
             }
             character_summaries += chapters[i].character_summary;
             location_summaries += chapters[i].location_summary;
@@ -278,7 +278,8 @@ graph TD
 
         await logicInspect(JSON.stringify({
             character_summaries: character_summaries,
-            location_summaries: location_summaries
+            location_summaries: location_summaries,
+            text: chapters[currentChapter].text
         }));
     }
 
@@ -291,7 +292,7 @@ graph TD
                     <Button onClick={resetBook} variant="destructive">Clear book</Button>
                     <StylePopup updateStylePrompt={updateStylePrompt}/>
                     <Button onClick={summarizeBook}>Summarize</Button>
-                    <ExportPopup content={chapters.map(chapter => chapter.text).join('\n\n')}/>
+                    <ExportPopup content={chapters.map(chapter => "# " + chapter.title + "\n\n" + chapter.text).join('\n\n')}/>
                 </div>
             </div>
             
@@ -354,7 +355,7 @@ graph TD
                     
             
                     {currentView === "location_summary" && <LocationSummary location_summary={chapters[currentChapter].location_summary}/>}
-                    {currentView === "character_summary" && chapters[currentChapter].character_summary ? <CharacterSummary character_summary={chapters[currentChapter].character_summary}/> : <div>Loading...</div>}
+                    {currentView === "character_summary" && chapters[currentChapter].character_summary && <CharacterSummary character_summary={chapters[currentChapter].character_summary}/>}
                     {currentView === "character_relationship_graph" && chapters[currentChapter].character_relationship_graph ? <MermaidChart chart={chapters[currentChapter].character_relationship_graph}/> : <div>Loading...</div>}
                     {currentView === "comments" && (
                         <div>
@@ -375,7 +376,7 @@ graph TD
                     )}
 
                     <div className="flex justify-center mt-[auto] gap-4 items-center pt-6">
-                        <Button onClick={analyzeChapter} disabled={chapterAnalyzeLoading}>
+                        <Button onClick={() => analyzeChapter(currentChapter)} disabled={chapterAnalyzeLoading}>
                             {chapterAnalyzeLoading && <Loader2 className="animate-spin" />}
                             Analyze Chapter
                         </Button>

@@ -1,5 +1,6 @@
 FROM node:18-alpine
 
+ENV VITE_API_URL 'http://localhost:8000'
 WORKDIR /app
 
 RUN cd /app
