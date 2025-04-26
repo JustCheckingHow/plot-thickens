@@ -23,6 +23,7 @@ const Nav = ({
     analyzeChapter,
     chapterAnalyzeLoading,
     setChapterAnalyzeLoading,
+    analyzeGrammar,
     logicInspectChapters
 }: {
     chapters: Chapter[];
@@ -34,7 +35,8 @@ const Nav = ({
     analyzeChapter: (chapter: number) => void;
     chapterAnalyzeLoading: boolean;
     setChapterAnalyzeLoading: (loading: boolean) => void;
-    logicInspectChapters: () => void;
+    analyzeGrammar: (chapter: number) => void;
+    logicInspectChapters: (chapter: number) => Promise<void>;
 }) => {
     type ModalVisibleType = "characters" | "locations" | "character_relationship_graph" | "plot_points" | "timeline_summary" | null;
     const context = useContext(ModalContext) as ModalContextType | undefined;
@@ -94,18 +96,25 @@ const Nav = ({
               </li>
             </ul>
             <div style={{marginTop: "auto"}}>
-              <div className="flex gap-2 mb-2">
+              {/* <div className="flex gap-2 mb-2">
                 <Button onClick={() => analyzeChapter(currentChapter)} disabled={chapterAnalyzeLoading}>
                     {chapterAnalyzeLoading && <Loader2 className="animate-spin" />}
                     Analyze Chapter
                 </Button>
-              </div>
+              </div> */}
               <div className="flex gap-2 mb-2">
-                <Button onClick={logicInspectChapters} disabled={chapterAnalyzeLoading}>
+                <Button onClick={() => logicInspectChapters(currentChapter)} disabled={chapterAnalyzeLoading}>
                     {chapterAnalyzeLoading && <Loader2 className="animate-spin" />}
                     Logic Inspect
                 </Button>
               </div>
+              <div className="flex gap-2 mb-2">
+                <Button onClick={() => analyzeGrammar(currentChapter)} disabled={chapterAnalyzeLoading}>
+                    {chapterAnalyzeLoading && <Loader2 className="animate-spin" />}
+                    Analyze Grammar
+                </Button>
+              </div>
+
               <StylePopup updateStylePrompt={updateStylePrompt}/>
               <div className="flex gap-2 mt-2">
                 <Button onClick={resetBook} variant="destructive" size={"icon"}>
@@ -122,7 +131,7 @@ const ProjectSelect = ({chapters, changeChapter}: {chapters: Chapter[]; changeCh
     const [open, setOpen] = useState(false)
     const [value, setValue] = useState("");
     const [chaptersLocal, setChaptersLocal] = useState([]);
-
+    console.log(chaptersLocal)
     useEffect(() => {
       setChaptersLocal(chapters.map((chapter) => ({
         id: chapter.order,
@@ -161,11 +170,11 @@ const ProjectSelect = ({chapters, changeChapter}: {chapters: Chapter[]; changeCh
                     changeChapter(Number(currentValue))
                   }}
                 >
-                  {chapter.title}
+                  {chapter.label}
                   <Check
                     className={cn(
                       "ml-auto",
-                      value === chapter.title ? "opacity-100" : "opacity-0"
+                      value === chapter.label ? "opacity-100" : "opacity-0"
                     )}
                   />
                 </CommandItem>

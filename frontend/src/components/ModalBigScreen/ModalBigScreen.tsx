@@ -1,5 +1,7 @@
 import { useContext } from "react";
 import { ModalContext, ModalContextType } from "../../context/ModalContext";
+import MarkdownRenderer from "../MarkdownRenderer";
+import MermaidChart from "../MermaindChart";
 import { Chapter } from "@/types/Chapter";
 import "./ModalBigScreen.scss";
 
@@ -23,15 +25,18 @@ const ModalBigScreen = ({
     const { modalVisible } = context;
 
     if (!modalVisible) return null;
-
+    console.log(chapters[currentChapter])
     return (
         <div className={"modal-big-screen py-8 " + (modalVisible ? "open" : "")}>
             <div className="container">
                 <h2 className="text-2xl font-bold mb-4">
                     {modalDict[modalVisible][0]}
                 </h2>
-
-                {chapters[currentChapter][modalDict[modalVisible][1]]}
+                {modalVisible === "character_relationship_graph" ? (
+                  <MermaidChart content={chapters[currentChapter][modalDict[modalVisible][1]]} />
+                ) : (
+                  <MarkdownRenderer content={chapters[currentChapter][modalDict[modalVisible][1]]} />
+                )}
             </div>
         </div>
     )
