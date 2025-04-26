@@ -113,6 +113,9 @@ const Nav = ({
                   try {
                     setLoading("grammy");
                     await analyzeGrammar(currentChapter);
+                    setTimeout(() => {
+                      setLoading(null);
+                    }, 2000);
                   } catch (error) {
                     console.error("Error during grammar analysis:", error);
                   } finally {
