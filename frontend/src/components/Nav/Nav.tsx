@@ -18,7 +18,6 @@ const Nav = ({
     changeChapter,
     currentChapter,
     updateStylePrompt,
-    resetBook,
     analyzeGrammar,
     logicInspectChapters,
     analyzeText,
@@ -27,7 +26,6 @@ const Nav = ({
     changeChapter: (chapter: number) => void;
     currentChapter: number;
     updateStylePrompt: (styleText: string) => void;
-    resetBook: () => void;
     analyzeGrammar: (chapter: number) => void;
     logicInspectChapters: (chapter: number) => Promise<void>;
     analyzeText: (chapter: number) => void;
@@ -126,9 +124,9 @@ const Nav = ({
 
               <StylePopup updateStylePrompt={updateStylePrompt}/>
               <div className="flex gap-2 mt-2">
-                <Button onClick={resetBook} variant="destructive" size={"icon"}>
+                {/* <Button onClick={resetBook} variant="destructive" size={"icon"}>
                   <Trash2 className="h-4 w-4" />
-                </Button>
+                </Button> */}
                 <ExportPopup content={chapters.map(chapter => "# " + chapter.title + "\n\n" + chapter.text).join('\n\n')} comments={chapters.map(chapter => chapter.comments).reduce((acc, curr) => ({...acc, ...curr}), {})} />
               </div>
             </div>        

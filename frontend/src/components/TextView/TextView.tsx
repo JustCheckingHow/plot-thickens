@@ -131,22 +131,20 @@ const CommentView = ({currentChapter, analyzeText, chapters, setChapters, commen
     const applySuggestion = (comment: string) => {
         const hash8byte = MD5(activeTextSelection).slice(0, 8);
         toast.success("New comment added");
-        setChapters((prevChapters: Chapter[]) => {
-            const newChapters = [...prevChapters];
-            newChapters[currentChapter] = {
-                ...newChapters[currentChapter],
-                text: newChapters[currentChapter].text.replace(
-                    activeTextSelection,
-                    `<comment id=${hash8byte}>${activeTextSelection}</comment>`
-                ),
-                comments: {
-                    ...newChapters[currentChapter].comments,
-                    [hash8byte]: comment,
-                    [hash8byte + '_suggestion']: comment
-                }
-            };
-            return newChapters;
-        });
+        const newChapters = [...chapters];
+        newChapters[currentChapter] = {
+            ...newChapters[currentChapter],
+            text: newChapters[currentChapter].text.replace(
+                activeTextSelection,
+                `<comment id=${hash8byte}>${activeTextSelection}</comment>`
+            ),
+            comments: {
+                ...newChapters[currentChapter].comments,
+                [hash8byte]: comment,
+                [hash8byte + '_suggestion']: comment
+            }
+        };
+        setChapters(newChapters);
         setActiveTextSelection('');
     };
     return (
