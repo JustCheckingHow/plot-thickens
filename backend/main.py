@@ -51,6 +51,7 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+
 @app.post("/api/docx-to-style")
 async def docx_to_style(file: UploadFile):
     # Create a temporary file to store the uploaded content
@@ -62,7 +63,7 @@ async def docx_to_style(file: UploadFile):
 
     try:
         # Convert the docx file to markdown chapters
-        markdown_chapters = docx_to_markdown_chapters(temp_file_path)
+        markdown_chapters, _ = docx_to_markdown_chapters(temp_file_path)
         markdown_chapters_str = "\n".join(markdown_chapters)
 
         style_definer = StyleDefiner()
@@ -73,7 +74,7 @@ async def docx_to_style(file: UploadFile):
 
 
 @app.post("/api/docx-to-markdown")
-async def docx_to_markdown(file: UploadFile):
+async def docx_to_markdown(file: UploadFile) -> dict:
     # Create a temporary file to store the uploaded content
     with tempfile.NamedTemporaryFile(delete=False, suffix=".docx") as temp_file:
         temp_file_path = temp_file.name
@@ -83,8 +84,8 @@ async def docx_to_markdown(file: UploadFile):
 
     try:
         # Convert the docx file to markdown chapters
-        markdown_chapters = docx_to_markdown_chapters(temp_file_path)
-        return {"chapters": markdown_chapters}
+        markdown_chapters, chapter_names = docx_to_markdown_chapters(temp_file_path)
+        return {"chapters": markdown_chapters, "chapter_names": chapter_names}
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
@@ -179,7 +180,7 @@ async def chapter_storyboard(chapter_request: ChapterRequest) -> Storyboard:
 @app.websocket("/api/style-guard")
 async def websocket_style_guard(websocket: WebSocket):
     issues_found = False
-    
+
     async def send_comment(original_text, text_with_comments, suggestion):
         nonlocal issues_found
         issues_found = True
@@ -235,6 +236,7 @@ async def websocket_style_guard(websocket: WebSocket):
 
     except WebSocketDisconnect:
         pass
+
 
 @app.websocket("/api/logic-inspector")
 async def websocket_logic_inspector(websocket: WebSocket):
