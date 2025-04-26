@@ -16,7 +16,7 @@ const Home: React.FC = () => {
     formData.append('file', file);
     try {
       setLoading(true);
-      const response = await axiosInstance.post('/api/docx-to-markdown', formData, {
+      const response = await axiosInstance.post('/api/doc-to-markdown', formData, {
         headers: {
           'Content-Type': 'multipart/form-data'
         }

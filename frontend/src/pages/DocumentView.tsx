@@ -55,7 +55,17 @@ const DocumentView = () => {
 
     useEffect(() => {
         if (state && state.chapters) {
-            setChapters(state.chapters);
+            setChapters(state.chapters.map((text, index) : {text: string, title: string, order: number} => ({
+                "text": text,
+                "title": state.chapter_names[index],
+                "order": index,
+                "character_summary": "",
+                "location_summary": "",
+                "character_relationship_graph": "",
+                "timeline_summary": "",
+                "plotpoint_summary": "",
+                "comments": {}
+            })));
             setCurrentChapter(0);
         }
     }, [state])
