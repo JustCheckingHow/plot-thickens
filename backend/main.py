@@ -2,6 +2,7 @@ from fastapi import FastAPI, Request, WebSocket, WebSocketDisconnect, Response
 from fastapi.middleware.cors import CORSMiddleware
 from writer_agents.style_inspector import StyleGuard
 from style_definer import StyleDefiner
+from writer_agents.logic_inspector import LogicInspector
 from storyboarding.storyboard_builder import StoryBoardBuilder
 from pydantic import BaseModel
 from typing import Optional, List
@@ -175,6 +176,56 @@ async def websocket_style_guard(websocket: WebSocket):
 
             # Process the text
             await style_guard.inspect_style(text)
+
+            logger.info("Text processed.")
+            await websocket.send_json({"status": "done"})
+
+    except WebSocketDisconnect:
+        pass
+
+
+@app.websocket("/api/logic-inspector")
+async def websocket_logic_inspector(websocket: WebSocket):
+    async def send_comment(original_text, text_with_comments):
+        await websocket.send_json(
+            {"original_text": original_text, "comment": text_with_comments}
+        )
+        return text_with_comments
+
+    await websocket.accept()
+
+    # Create StyleGuard instance
+    style_guard = None
+
+    try:
+        while True:
+            # Receive next message
+            data = await websocket.receive_json()
+
+            # Check if style_prompt is provided in this message
+            if "character_summaries" in data and "location_summaries" in data:
+                # Update style prompt and recreate StyleGuard instance
+                character_summaries = data.get("character_summaries", "")
+                location_summaries = data.get("location_summaries", "")
+                logic_inspector = LogicInspector(
+                    character_summaries=character_summaries,
+                    location_summaries=location_summaries,
+                    callback=send_comment,
+                )
+
+            # Get text for checking
+            text = data.get("text", "")
+
+            if not text:
+                await websocket.send_json({"error": "No text provided"})
+                continue
+
+            if logic_inspector is None:
+                await websocket.send_json({"error": "Logic inspector not initialized"})
+                continue
+
+            # Process the text
+            await logic_inspector.inspect_logic(text)
 
             logger.info("Text processed.")
             await websocket.send_json({"status": "done"})
