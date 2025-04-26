@@ -456,7 +456,10 @@ const DocumentView = () => {
     };
 
     return (
-        <div>
+        <div className="w-full">
+            
+
+            <div className="flex gap-4 mt-4">
             <Nav
                 chapters={chapters}
                 handleAddnewChapter={handleAddnewChapter}
@@ -466,8 +469,6 @@ const DocumentView = () => {
                 updateStylePrompt={updateStylePrompt}
                 logicInspectChapters={logicInspectChapters}
             />
-
-            <div className="flex gap-4 mt-4">
                 <TextView
                     chapters={chapters}
                     setChapters={setChapters}

@@ -10,34 +10,14 @@ import { Chapter } from "@/types/Chapter";
 import { StylePopup } from "../StylePopup/StylePopup";
 import logo from "@/assets/image/logo.svg"
 import ExportPopup from "../ExportPopup/ExportPopup";
-import { ModalContext, ModalContextType } from "../../context/ModalContext";
+import { ModalContext, ModalContextType, ModalVisibleType } from "../../context/ModalContext";
 // import logo from "@/public/logo.svg";
-import { ModalBigScreen } from "../ModalBigScreen/ModalBigScreen";
+import ModalBigScreen from "../ModalBigScreen/ModalBigScreen";
 
-/**
- * The navigation menu component.
- * 
- * This component displays the navigation menu that is visible on the left side of the screen.
- * It contains a list of chapters, and buttons to analyze a chapter, inspect the logic of the chapters,
- * update the style prompt, reset the book, and export the content.
- * 
- * @param {Chapter[]} chapters - The list of chapters to display in the navigation menu.
- * @param {() => void} handleAddnewChapter - The function to call when the user clicks the "Add new chapter" button.
- * @param {(chapter: number) => void} changeChapter - The function to call when the user clicks on a chapter in the list.
- * @param {number} currentChapter - The current chapter that is being displayed.
- * @param {(chapter: number) => void} removeChapter - The function to call when the user clicks the "Remove chapter" button.
- * @param {(styleText: string) => void} updateStylePrompt - The function to call when the user updates the style prompt.
- * @param {() => void} resetBook - The function to call when the user clicks the "Reset book" button.
- * @param {(chapter: number) => void} analyzeChapter - The function to call when the user clicks the "Analyze chapter" button.
- * @param {boolean} chapterAnalyzeLoading - Whether the chapter analyze button is loading.
- * @param {(loading: boolean) => void} setChapterAnalyzeLoading - The function to call to set the loading state of the chapter analyze button.
- * @param {() => void} logicInspectChapters - The function to call when the user clicks the "Logic inspect chapters" button.
- */
 const Nav = ({
     chapters,
     changeChapter,
     currentChapter,
-    removeChapter,
     updateStylePrompt,
     resetBook,
     analyzeChapter,
@@ -49,7 +29,6 @@ const Nav = ({
     handleAddnewChapter: () => void;
     changeChapter: (chapter: number) => void;
     currentChapter: number;
-    removeChapter: (chapter: number) => void;
     updateStylePrompt: (styleText: string) => void;
     resetBook: () => void;
     analyzeChapter: (chapter: number) => void;
@@ -57,7 +36,7 @@ const Nav = ({
     setChapterAnalyzeLoading: (loading: boolean) => void;
     logicInspectChapters: () => void;
 }) => {
-
+    type ModalVisibleType = "characters" | "locations" | "character_relationship_graph" | "plot_points" | "timeline_summary" | null;
     const context = useContext(ModalContext) as ModalContextType | undefined;
     if (!context) throw new Error("ModalContext is undefined. Make sure ModalProvider is in the component tree.");
     const { setModalVisible, modalVisible } = context;
