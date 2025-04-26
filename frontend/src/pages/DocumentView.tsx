@@ -3,18 +3,12 @@ import useWebSocket from "react-use-websocket";
 import axiosInstance, { API_URL } from "@/api/axios";
 import { toast } from "sonner";
 import { Chapter } from "@/types/Chapter";
-import { Textarea } from "@/components/ui/textarea";
-import { Input } from "@/components/ui/input";
-import CharacterSummary from "@/components/DocumentView/CharacterSummary";
-import LocationSummary from "@/components/DocumentView/LocationSummary";
-import { Label } from "@/components/ui/label";
-import { Check, Edit, Loader2 } from "lucide-react";
 import { MD5 } from "@/lib/utils";
 import { useLocation } from "react-router-dom";
-import CommentView from "@/components/CommentView/CommentView";
 import Nav from "@/components/Nav/Nav";
 import TextView from "@/components/TextView/TextView";
 import ModalBigScreen from "@/components/ModalBigScreen/ModalBigScreen";
+import { ModalContext } from "@/context/ModalContext";
 
 const DocumentView = () => {
     const { state } = useLocation();
@@ -46,7 +40,8 @@ const DocumentView = () => {
 
     const textContainerRef = useRef<HTMLDivElement>(null);
     const pendingSubcommentsRef = useRef<Record<string, Set<string>>>({});
-    const [currentView, setCurrentView] = useState<'character_summary' | 'location_summary' | 'character_relationship_graph' | 'timeline_summary' | 'comments' | 'plotpoint_summary'>('comments');
+
+    const { modalVisible, setModalVisible } = ModalContext;
 
     useEffect(() => {
         if (state && state.chapters) {
@@ -160,63 +155,6 @@ const DocumentView = () => {
         }
     }, [lastMessage]);
 
-    useEffect(() => {
-        // Add event listeners after the component mounts or text changes
-        if (!textContainerRef.current) return;
-
-        const container = textContainerRef.current;
-
-        // Process all comment elements in the container
-        const addEventListeners = () => {
-            const commentElements = container.querySelectorAll('comment');
-
-            commentElements.forEach(element => {
-                element.setAttribute('style', 'border-bottom: 1px dashed #666; cursor: pointer;');
-
-                console.log(element);
-
-                element.addEventListener('mouseover', (e) => {
-                    const target = e.currentTarget as HTMLElement;
-                    const commentText = target.getAttribute('comment');
-                    const text = target.textContent || '';
-
-                    if (commentText) {
-                        // setComment(commentText);
-                        // setActiveTextSelection(text);
-                    }
-                });
-
-                element.addEventListener('mouseout', () => {
-                    // Keep the comment visible, don't clear it
-                    // setComment('');
-                });
-
-                element.addEventListener('click', (e) => {
-                    const target = e.currentTarget as HTMLElement;
-                    const commentText = target.id;
-                    const text = target.textContent || '';
-
-                    if (text && commentText) {
-                        console.log(chapters);
-                        setCurrentView('comments');
-                        // setComment(commentText);
-                        // setActiveTextSelection(text);
-                    }
-                });
-            });
-        };
-
-        // Add event listeners initially
-        addEventListeners();
-
-        // Use MutationObserver to detect changes in the DOM
-        const observer = new MutationObserver(addEventListeners);
-        observer.observe(container, { childList: true, subtree: true });
-
-        return () => {
-            observer.disconnect();
-        };
-    }, [chapters[currentChapter].comments]);
 
     const updateStylePrompt = async (style: string) => {
         await sendMessage(JSON.stringify({
@@ -235,31 +173,6 @@ const DocumentView = () => {
         await grammarInspect(JSON.stringify({
             "text": chapters[chapterNumber].text
         }));
-    }
-
-    const handleEditText = () => {
-        if (isTextEditing) {
-            setIsTextEditing(false);
-            analyzeText(currentChapter);
-            setChapters(prev => {
-                const newChapters = [...prev];
-                newChapters[currentChapter] = {
-                    ...newChapters[currentChapter],
-                    text: newChapters[currentChapter].text,
-                    title: newChapters[currentChapter].title,
-                    order: newChapters[currentChapter].order,
-                    comments: {},
-                    character_summary: "",
-                    location_summary: "",
-                    character_relationship_graph: "",
-                    timeline_summary: "",
-                    plotpoint_summary: ""
-                };
-                return newChapters;
-            });
-        } else {
-            setIsTextEditing(true);
-        }
     }
 
     const removeChapter = (order: number) => {
@@ -357,31 +270,6 @@ const DocumentView = () => {
         return response;
     }
 
-    const resetBook = () => {
-        setChapters([dummyBook]);
-        setCurrentChapter(0);
-        localStorage.setItem('chapters', JSON.stringify([]));
-    }
-
-    const logicInspectChapters = async () => {
-        let character_summaries = "";
-        let location_summaries = "";
-    
-        for(let i = 0; i < chapters.length-1; i++){
-            if(chapters[i].character_summary == "" || chapters[i].location_summary == ""){
-                await analyzeChapter(i);
-            }
-            character_summaries += chapters[i].character_summary;
-            location_summaries += chapters[i].location_summary;
-        }
-    
-        await logicInspect(JSON.stringify({
-            character_summaries: character_summaries,
-            location_summaries: location_summaries,
-            text: chapters[currentChapter].text
-        }));
-    }
-
     const applySuggestion = async (comment: string) => {
         setChapters(prev => {
             const newChapters = [...prev];
@@ -403,11 +291,6 @@ const DocumentView = () => {
     }
     
     const logicInspectChapters = async (chapterNumber: number) => {
-        if(isTextEditing){
-            toast.error('Please finish editing before summarizing');
-            return;
-        }
-
         let character_summary = "";
         let location_summary = "";
 
@@ -574,39 +457,25 @@ const DocumentView = () => {
 
     return (
         <div>
-            
-            <div className="flex gap-4 mt-4">
-                <div className="bg-zinc-800 flex-1 px-4 py-4">
-                    {currentView === "plotpoint_summary" && (
-                        <div className="mt-4">
-                            <h3 className="text-lg font-medium mb-2">Plot Points</h3>
-                            {chapters[currentChapter].plotpoint_summary ? (
-                                <MarkdownRenderer content={chapters[currentChapter].plotpoint_summary} />
-                            ) : (
-                                <p className="text-sm text-zinc-400">No plot point information available yet. Analyze the chapter first.</p>
-                            )}
-                        </div>
-                    )}
-                    {currentView === "comments" && (
-                        <div>
-                            <div className="flex gap-2 justify-center">
-                                <Button onClick={() => analyzeText(currentChapter)}>Style text Analyze</Button>
-                                {currentChapter > 0 && <Button onClick={logicInspectChapters}>Logic inspect</Button>}
-                            </div>
-                            <div className="mt-4 p-3 bg-zinc-700 rounded-md">
-                                <h3 className="text-sm font-medium mb-1">Feedback:</h3>
-                                {activeTextSelection && (
-                                    <div className="text-xs italic bg-zinc-600 p-2 mb-2 rounded">
-                                        "{activeTextSelection}"
-                                    </div>
-                                )}
-                                <p className="text-sm">{chapters[currentChapter].comments[comment] || "Click on marked text to view comments"}</p>
-                                <p className="text-sm italic">{chapters[currentChapter].comments[comment + '_suggestion'] || ""} <Button onClick={() => applySuggestion(comment)}>Zastosuj</Button></p>
-                            </div>
-                        </div>
-                    )}
+            <Nav
+                chapters={chapters}
+                handleAddnewChapter={handleAddnewChapter}
+                currentChapter={currentChapter}
+                setCurrentChapter={setCurrentChapter}
+                removeChapter={removeChapter}
+                updateStylePrompt={updateStylePrompt}
+                logicInspectChapters={logicInspectChapters}
+            />
 
-                </div>
+            <div className="flex gap-4 mt-4">
+                <TextView
+                    chapters={chapters}
+                    setChapters={setChapters}
+                    currentChapter={currentChapter}
+                    setCurrentChapter={setCurrentChapter}
+                    handleAddnewChapter={handleAddnewChapter}
+                    analyzeText={analyzeText}
+                />
             </div>
             <ModalBigScreen
                 chapters={chapters}
