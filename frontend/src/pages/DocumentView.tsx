@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import useWebSocket from "react-use-websocket";
 import axiosInstance, { API_URL } from "@/api/axios";
 import { toast } from "sonner";
@@ -181,8 +181,8 @@ const DocumentView = () => {
                     const text = target.textContent || '';
 
                     if (commentText) {
-                        setComment(commentText);
-                        setActiveTextSelection(text);
+                        // setComment(commentText);
+                        // setActiveTextSelection(text);
                     }
                 });
 
@@ -199,8 +199,8 @@ const DocumentView = () => {
                     if (text && commentText) {
                         console.log(chapters);
                         setCurrentView('comments');
-                        setComment(commentText);
-                        setActiveTextSelection(text);
+                        // setComment(commentText);
+                        // setActiveTextSelection(text);
                     }
                 });
             });
@@ -576,51 +576,7 @@ const DocumentView = () => {
         <div>
             
             <div className="flex gap-4 mt-4">
-                <div className="bg-zinc-800 flex-1 px-4 py-4 overflow-y-auto max-h-[90vh] relative" ref={textContainerRef}>
-                    <Label htmlFor="chapter-titl">Chapter Title</Label>
-                    <Input
-                     id="chapter-title"
-                     className="mt-2"
-                     value={chapters[currentChapter].title || ""}
-                     placeholder="Chapter title"
-                     onChange={(e) => setChapters(prev => {
-                        const newChapters = [...prev];
-                        newChapters[currentChapter] = {
-                            ...newChapters[currentChapter],
-                            title: e.target.value
-                        };
-                        return newChapters;
-                    })} /><br/>
-                    {(isTextEditing) ? <Textarea
-                        value={chapters[currentChapter].text || ""}
-                        onChange={(e) => setChapters(prev => {
-                            const newChapters = [...prev];
-                            newChapters[currentChapter] = {
-                                ...newChapters[currentChapter],
-                                text: e.target.value
-                            };
-                            return newChapters;
-                        })}
-                    /> : <div dangerouslySetInnerHTML={{ __html: chapters[currentChapter].text }}></div>}
-
-                    <div className="flex gap-2 mt-2 justify-end">
-                        <Button onClick={handleEditText} size="icon" variant="outline">{isTextEditing ? <Check className="h-4 w-4" /> : <Edit className="h-4 w-4" />}</Button>
-                    </div>
-                </div>
                 <div className="bg-zinc-800 flex-1 px-4 py-4">
-                    {currentView === "location_summary" && <LocationSummary location_summary={chapters[currentChapter].location_summary}/>}
-                    {currentView === "character_summary" && chapters[currentChapter].character_summary && <CharacterSummary character_summary={chapters[currentChapter].character_summary}/>}
-                    {currentView === "character_relationship_graph" && chapters[currentChapter].character_relationship_graph ? <MermaidChart chart={chapters[currentChapter].character_relationship_graph}/> : <div>Loading...</div>}
-                    {currentView === "timeline_summary" && (
-                        <div className="mt-4">
-                            <h3 className="text-lg font-medium mb-2">Timeline Summary</h3>
-                            {chapters[currentChapter].timeline_summary ? (
-                                <MarkdownRenderer content={chapters[currentChapter].timeline_summary} />
-                            ) : (
-                                <p className="text-sm text-zinc-400">No timeline information available yet. Analyze the chapter first.</p>
-                            )}
-                        </div>
-                    )}
                     {currentView === "plotpoint_summary" && (
                         <div className="mt-4">
                             <h3 className="text-lg font-medium mb-2">Plot Points</h3>
@@ -650,12 +606,6 @@ const DocumentView = () => {
                         </div>
                     )}
 
-                    <div className="flex justify-center mt-[auto] gap-4 items-center pt-6">
-                        <Button onClick={() => analyzeChapter(currentChapter)} disabled={chapterAnalyzeLoading}>
-                            {chapterAnalyzeLoading && <Loader2 className="animate-spin" />}
-                            Analyze Chapter
-                        </Button>
-                    </div>
                 </div>
             </div>
             <ModalBigScreen
