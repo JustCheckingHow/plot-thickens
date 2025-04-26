@@ -355,7 +355,7 @@ graph TD
             
                     {currentView === "location_summary" && <LocationSummary location_summary={chapters[currentChapter].location_summary}/>}
                     {currentView === "character_summary" && chapters[currentChapter].character_summary ? <CharacterSummary character_summary={chapters[currentChapter].character_summary}/> : <div>Loading...</div>}
-                    {currentView === "character_relationship_graph" && <MermaidChart chart={chart}/>}
+                    {currentView === "character_relationship_graph" && chapters[currentChapter].character_relationship_graph ? <MermaidChart chart={chapters[currentChapter].character_relationship_graph}/> : <div>Loading...</div>}
                     {currentView === "comments" && (
                         <div>
                             <div className="flex gap-2 justify-center">
