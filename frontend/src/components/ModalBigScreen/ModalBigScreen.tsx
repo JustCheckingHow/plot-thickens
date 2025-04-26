@@ -34,7 +34,8 @@ const ModalBigScreen = ({
                                         {/* @ts-ignore */}
                     {modalDict[modalVisible][0] || "-"}
                 </h2>
-                {modalVisible === "character_relationship_graph"  ? (
+                
+                {modalVisible === "character_relationship_graph" ? (
                   // @ts-ignore
                   <MermaidChart chart={chapters[currentChapter][modalDict[modalVisible][1]]} />
                 ) : (

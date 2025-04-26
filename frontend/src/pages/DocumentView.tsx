@@ -55,6 +55,11 @@ const DocumentView = () => {
             })));
             setCurrentChapter(0);
         }
+        if(state && state.full) {
+            // @ts-ignore
+            setChapters(state.full);
+            setCurrentChapter(0);
+        }
     }, [state])
 
     useEffect(() => {
@@ -65,6 +70,7 @@ const DocumentView = () => {
     useEffect(() => {
         localStorage.setItem('chapters', JSON.stringify(chapters));
         localStorage.setItem('currentChapter', JSON.stringify(currentChapter));
+        console.log(chapters);
     }, [chapters, currentChapter])
 
     useEffect(() => {
@@ -154,6 +160,8 @@ const DocumentView = () => {
 
 
     const updateStylePrompt = async (style: string) => {
+        console.log(chapters);
+
         await sendMessage(JSON.stringify({
             "style_prompt": style
         }));

@@ -51,7 +51,7 @@ const TextView = ({chapters, setChapters, currentChapter, analyzeText, handleAdd
             const commentElements = container.querySelectorAll('comment');
             
             commentElements.forEach(element => {
-                element.setAttribute('style', 'border-bottom: 1px dashed #666; cursor: pointer;');
+                element.setAttribute('style', 'border-bottom: 1px dashed #666; cursor: pointer; background: rgba(255,0,0,.5)');
 
                 console.log(element);
                 

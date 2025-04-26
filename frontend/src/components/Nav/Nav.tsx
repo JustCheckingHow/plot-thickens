@@ -36,7 +36,6 @@ const Nav = ({
     const { setModalVisible, modalVisible } = context;
     const [loading, setLoading] = useState<"logic" | "grammy" | "style" | null>(null);
 
-    console.log(currentChapter);
 
     const handleVisibleModal = (modal: ModalVisibleType) => {
         if(modalVisible === modal) {
@@ -126,6 +125,7 @@ const Nav = ({
                     "Analyze Grammar"
                   )}
                 </Button>
+                <ExportPopup content={chapters.map(chapter => "# " + chapter.title + "\n\n" + chapter.text).join('\n\n')} comments={chapters.map(chapter => chapter.comments).reduce((acc, curr) => ({...acc, ...curr}), {})} />
               </div>
 
               <div className="flex gap-2 mb-2">
@@ -147,12 +147,7 @@ const Nav = ({
                 </Button>
               </div>
               <StylePopup updateStylePrompt={updateStylePrompt}/>
-              <div className="flex gap-2 mt-2">
-                {/* <Button onClick={resetBook} variant="destructive" size={"icon"}>
-                  <Trash2 className="h-4 w-4" />
-                </Button> */}
-                <ExportPopup content={chapters.map(chapter => "# " + chapter.title + "\n\n" + chapter.text).join('\n\n')} comments={chapters.map(chapter => chapter.comments).reduce((acc, curr) => ({...acc, ...curr}), {})} />
-              </div>
+              
             </div>        
         </nav>
     )
@@ -162,8 +157,7 @@ const ProjectSelect = ({chapters, changeChapter}: {chapters: Chapter[]; changeCh
     const [open, setOpen] = useState(false)
     const [value, setValue] = useState("");
     type ChapterOption = { id: number; label: string; value: string };
-const [chaptersLocal, setChaptersLocal] = useState<ChapterOption[]>([]);
-    console.log(chaptersLocal)
+    const [chaptersLocal, setChaptersLocal] = useState<ChapterOption[]>([]);
     useEffect(() => {
       setChaptersLocal(chapters.map((chapter) => ({
         id: chapter.order,
