@@ -106,18 +106,18 @@ const MermaidChart = ({ chart }: MermaidChartProps) => {
   return (
     <>
       <div 
-        className="mermaid-chart-preview" 
+        className="mermaid-chart-preview mt-4" 
         onClick={openModal}
         style={{ 
           cursor: 'pointer',
-          border: '1px solid #ddd',
+          border: '1px solid rgba(255,255,255,.2)',
           borderRadius: '4px',
           padding: '8px',
           display: 'inline-block',
-          maxWidth: '300px',
+          maxWidth: '100%',
+          width: '100%',
           overflow: 'hidden',
           transition: 'all 0.2s ease',
-          boxShadow: '0 2px 5px rgba(0,0,0,0.1)'
         }}
       >
         <Suspense fallback={<div>Loading preview...</div>}>
