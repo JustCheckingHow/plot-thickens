@@ -77,7 +77,7 @@ async def markdown_to_docx_with_comments(request: MarkdownToWordRequest) -> byte
         comment_id = match.group(2).strip("\"'")  # Remove quotes if present
         comment_text = match.group(3)
         run.add_comment(
-            f"{comment_id}: {comment_text}", author=request.author_name, initials="A"
+            f"{comment_text}", author=request.author_name, initials="A"
         )
 
         # Continue with text after this comment

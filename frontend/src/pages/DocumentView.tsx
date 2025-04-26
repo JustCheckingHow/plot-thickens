@@ -5,7 +5,6 @@ import { useEffect, useState, useRef } from "react";
 import useWebSocket from "react-use-websocket";
 import axiosInstance, { API_URL } from "@/api/axios";
 import { toast } from "sonner";
-// import React from "react"
 import MermaidChart from "@/components/MermaindChart";
 import { Chapter } from "@/types/Chapter";
 import { Textarea } from "@/components/ui/textarea";
@@ -18,29 +17,35 @@ import {
   } from "@/components/ui/menubar";
 import LocationSummary from "@/components/DocumentView/LocationSummary";
 import { Label } from "@/components/ui/label";
+import { Check, Edit, Loader2 } from "lucide-react";
+import { MD5 } from "@/lib/utils";
+import ExportPopup from "@/components/ExportPopup/ExportPopup";
 
-// @ts-ignore
-var MD5 = function(d){var r = M(V(Y(X(d),8*d.length)));return r.toLowerCase()};function M(d){for(var _,m="0123456789ABCDEF",f="",r=0;r<d.length;r++)_=d.charCodeAt(r),f+=m.charAt(_>>>4&15)+m.charAt(15&_);return f}function X(d){for(var _=Array(d.length>>2),m=0;m<_.length;m++)_[m]=0;for(m=0;m<8*d.length;m+=8)_[m>>5]|=(255&d.charCodeAt(m/8))<<m%32;return _}function V(d){for(var _="",m=0;m<32*d.length;m+=8)_+=String.fromCharCode(d[m>>5]>>>m%32&255);return _}function Y(d,_){d[_>>5]|=128<<_%32,d[14+(_+64>>>9<<4)]=_;for(var m=1732584193,f=-271733879,r=-1732584194,i=271733878,n=0;n<d.length;n+=16){var h=m,t=f,g=r,e=i;f=md5_ii(f=md5_ii(f=md5_ii(f=md5_ii(f=md5_hh(f=md5_hh(f=md5_hh(f=md5_hh(f=md5_gg(f=md5_gg(f=md5_gg(f=md5_gg(f=md5_ff(f=md5_ff(f=md5_ff(f=md5_ff(f,r=md5_ff(r,i=md5_ff(i,m=md5_ff(m,f,r,i,d[n+0],7,-680876936),f,r,d[n+1],12,-389564586),m,f,d[n+2],17,606105819),i,m,d[n+3],22,-1044525330),r=md5_ff(r,i=md5_ff(i,m=md5_ff(m,f,r,i,d[n+4],7,-176418897),f,r,d[n+5],12,1200080426),m,f,d[n+6],17,-1473231341),i,m,d[n+7],22,-45705983),r=md5_ff(r,i=md5_ff(i,m=md5_ff(m,f,r,i,d[n+8],7,1770035416),f,r,d[n+9],12,-1958414417),m,f,d[n+10],17,-42063),i,m,d[n+11],22,-1990404162),r=md5_ff(r,i=md5_ff(i,m=md5_ff(m,f,r,i,d[n+12],7,1804603682),f,r,d[n+13],12,-40341101),m,f,d[n+14],17,-1502002290),i,m,d[n+15],22,1236535329),r=md5_gg(r,i=md5_gg(i,m=md5_gg(m,f,r,i,d[n+1],5,-165796510),f,r,d[n+6],9,-1069501632),m,f,d[n+11],14,643717713),i,m,d[n+0],20,-373897302),r=md5_gg(r,i=md5_gg(i,m=md5_gg(m,f,r,i,d[n+5],5,-701558691),f,r,d[n+10],9,38016083),m,f,d[n+15],14,-660478335),i,m,d[n+4],20,-405537848),r=md5_gg(r,i=md5_gg(i,m=md5_gg(m,f,r,i,d[n+9],5,568446438),f,r,d[n+14],9,-1019803690),m,f,d[n+3],14,-187363961),i,m,d[n+8],20,1163531501),r=md5_gg(r,i=md5_gg(i,m=md5_gg(m,f,r,i,d[n+13],5,-1444681467),f,r,d[n+2],9,-51403784),m,f,d[n+7],14,1735328473),i,m,d[n+12],20,-1926607734),r=md5_hh(r,i=md5_hh(i,m=md5_hh(m,f,r,i,d[n+5],4,-378558),f,r,d[n+8],11,-2022574463),m,f,d[n+11],16,1839030562),i,m,d[n+14],23,-35309556),r=md5_hh(r,i=md5_hh(i,m=md5_hh(m,f,r,i,d[n+1],4,-1530992060),f,r,d[n+4],11,1272893353),m,f,d[n+7],16,-155497632),i,m,d[n+10],23,-1094730640),r=md5_hh(r,i=md5_hh(i,m=md5_hh(m,f,r,i,d[n+13],4,681279174),f,r,d[n+0],11,-358537222),m,f,d[n+3],16,-722521979),i,m,d[n+6],23,76029189),r=md5_hh(r,i=md5_hh(i,m=md5_hh(m,f,r,i,d[n+9],4,-640364487),f,r,d[n+12],11,-421815835),m,f,d[n+15],16,530742520),i,m,d[n+2],23,-995338651),r=md5_ii(r,i=md5_ii(i,m=md5_ii(m,f,r,i,d[n+0],6,-198630844),f,r,d[n+7],10,1126891415),m,f,d[n+14],15,-1416354905),i,m,d[n+5],21,-57434055),r=md5_ii(r,i=md5_ii(i,m=md5_ii(m,f,r,i,d[n+12],6,1700485571),f,r,d[n+3],10,-1894986606),m,f,d[n+10],15,-1051523),i,m,d[n+1],21,-2054922799),r=md5_ii(r,i=md5_ii(i,m=md5_ii(m,f,r,i,d[n+8],6,1873313359),f,r,d[n+15],10,-30611744),m,f,d[n+6],15,-1560198380),i,m,d[n+13],21,1309151649),r=md5_ii(r,i=md5_ii(i,m=md5_ii(m,f,r,i,d[n+4],6,-145523070),f,r,d[n+11],10,-1120210379),m,f,d[n+2],15,718787259),i,m,d[n+9],21,-343485551),m=safe_add(m,h),f=safe_add(f,t),r=safe_add(r,g),i=safe_add(i,e)}return Array(m,f,r,i)}function md5_cmn(d,_,m,f,r,i){return safe_add(bit_rol(safe_add(safe_add(_,d),safe_add(f,i)),r),m)}function md5_ff(d,_,m,f,r,i,n){return md5_cmn(_&m|~_&f,d,_,r,i,n)}function md5_gg(d,_,m,f,r,i,n){return md5_cmn(_&f|m&~f,d,_,r,i,n)}function md5_hh(d,_,m,f,r,i,n){return md5_cmn(_^m^f,d,_,r,i,n)}function md5_ii(d,_,m,f,r,i,n){return md5_cmn(m^(_|~f),d,_,r,i,n)}function safe_add(d,_){var m=(65535&d)+(65535&_);return(d>>16)+(_>>16)+(m>>16)<<16|65535&m}function bit_rol(d,_){return d<<_|d>>>32-_}
 
 const DocumentView = () => {
     const { sendMessage, lastMessage } = useWebSocket(API_URL.replace(/^http/, "ws") + "/api/style-guard", {
         shouldReconnect: () => true
     });
+    const { sendMessage: logicInspect, lastMessage: logicInspectLastMessage } = useWebSocket(API_URL.replace(/^http/, "ws") + "/api/logic-inspector", {
+        shouldReconnect: () => true
+    });
+    const dummyBook = {
+        "title": "Example title",
+        "order": 0,
+        "text": 'The hum of the Odyssey\'s life support was a constant, mournful drone in Captain Eva Rostova\'s ears. It was the sound of scarcity, the sound of a colony slowly, inevitably, dimming into oblivion. Below, on the surface of Cygnus X-1\'s third moon, Station Epsilon flickered like a dying ember. Power reserves were critical. The fusion core, once a vibrant heart, now sputtered, fed by dwindling deuterium mined from the moon\'s thin crust. Eva ran a calloused hand over the worn navigation console. Images of her daughter, Anya, played on a small, cracked screen beside it. Anya\'s face, thin but still bright-eyed, a stark reminder of what was at stake. "Find the light, Mama," Anya had whispered during their last comms burst, her voice frail. That light, they hoped, lay trillions of kilometers away, in the uncharted sector designated \'Xylos\'. Scans from ancient probes hinted at unusual energy signatures, isotopes unlike anything known in colonized space. Yo mama test xd. It was a long shot, a desperate gamble, but the only one they had left. Eva wasn\'t a natural explorer. She was an engineer, a pilot who preferred the predictable physics of orbital mechanics to the terrifying unknowns of deep space. But when the call went out for a volunteer to pilot the Odyssey, their last FTL-capable ship, towards the faint hope of Xylos, Eva hadn\'t hesitated. Her skills were necessary, yes, but it was Anya\'s face, and the faces of every child on Epsilon, that fueled her resolve. She carried the weight of a dying colony on her shoulders, and that weight was a constant, crushing pressure, yet it forged her determination into something unbreakable. Failure was not an option.',
+        "character_summary": "",
+        "location_summary": "",
+        "character_relationship_graph": "",
+        "comments": {}
+    }
     const [comment, setComment] = useState('');
     const [activeTextSelection, setActiveTextSelection] = useState('');
     const [chapters, setChapters] = useState<Chapter[]>([
-        {
-            "title": "Example title",
-            "order": 0,
-            "text": 'The hum of the Odyssey\'s life support was a constant, mournful drone in Captain Eva Rostova\'s ears. It was the sound of scarcity, the sound of a colony slowly, inevitably, dimming into oblivion. Below, on the surface of Cygnus X-1\'s third moon, Station Epsilon flickered like a dying ember. Power reserves were critical. The fusion core, once a vibrant heart, now sputtered, fed by dwindling deuterium mined from the moon\'s thin crust. Eva ran a calloused hand over the worn navigation console. Images of her daughter, Anya, played on a small, cracked screen beside it. Anya\'s face, thin but still bright-eyed, a stark reminder of what was at stake. "Find the light, Mama," Anya had whispered during their last comms burst, her voice frail. That light, they hoped, lay trillions of kilometers away, in the uncharted sector designated \'Xylos\'. Scans from ancient probes hinted at unusual energy signatures, isotopes unlike anything known in colonized space. Yo mama test xd. It was a long shot, a desperate gamble, but the only one they had left. Eva wasn\'t a natural explorer. She was an engineer, a pilot who preferred the predictable physics of orbital mechanics to the terrifying unknowns of deep space. But when the call went out for a volunteer to pilot the Odyssey, their last FTL-capable ship, towards the faint hope of Xylos, Eva hadn\'t hesitated. Her skills were necessary, yes, but it was Anya\'s face, and the faces of every child on Epsilon, that fueled her resolve. She carried the weight of a dying colony on her shoulders, and that weight was a constant, crushing pressure, yet it forged her determination into something unbreakable. Failure was not an option.',
-            "character_summary": "",
-            "location_summary": "",
-            "character_relationship_graph": "",
-            "comments": {}
-        }
+        dummyBook
     ]);
     const [currentChapter, setCurrentChapter] = useState(0);
     const [isTextEditing, setIsTextEditing] = useState(false);
+    const [chapterAnalyzeLoading, setChapterAnalyzeLoading] = useState(false);
     const [chart, __] = useState(`
 graph TD
     Eva-->|mother|Anya
@@ -65,6 +70,31 @@ graph TD
     }, [chapters, currentChapter])
 
     useEffect(() => {
+        if (!logicInspectLastMessage) return;
+        const data = JSON.parse(logicInspectLastMessage.data);
+        if (data && data.original_text) {
+            const { original_text, comment } = data;
+            const hash8byte = MD5(original_text).slice(0, 8);
+            toast.success("New comment added");
+            setChapters(prevChapters => {
+                const newChapters = [...prevChapters];
+                newChapters[currentChapter] = {
+                    ...newChapters[currentChapter],
+                    text: newChapters[currentChapter].text.replace(
+                        original_text,
+                        `<comment id=${hash8byte}>${original_text}</comment>`
+                    ),
+                    comments: {
+                        ...newChapters[currentChapter].comments,
+                        [hash8byte]: comment
+                    }
+                };
+                return newChapters;
+            });
+        }
+    }, [logicInspectLastMessage])
+
+    useEffect(() => {
         if (!lastMessage) return;
         const data = JSON.parse(lastMessage.data);
         if (data && data.original_text) {
@@ -77,7 +107,7 @@ graph TD
                     ...newChapters[currentChapter],
                     text: newChapters[currentChapter].text.replace(
                         original_text,
-                        `<comment id=${hash8byte}>{{${original_text}}}</comment>`
+                        `<comment id=${hash8byte}>${original_text}</comment>`
                     ),
                     comments: {
                         ...newChapters[currentChapter].comments,
@@ -159,16 +189,16 @@ graph TD
         }));
     }
 
-    const analyzeText = async () => {
+    const analyzeText = async (chapterNumber: number) => {
         await sendMessage(JSON.stringify({
-            "text": chapters[currentChapter].text
+            "text": chapters[chapterNumber].text
         }));
     }
 
     const handleEditText = () => {
         if(isTextEditing){
             setIsTextEditing(false);
-            analyzeText();
+            analyzeText(currentChapter);
         } else {
             setIsTextEditing(true);
         }
@@ -181,6 +211,7 @@ graph TD
 
     const handleAddnewChapter = () => {
         setChapters(prev => [...prev, {
+            raw_text: '',
             text: '',
             title: '',
             character_summary: '',
@@ -193,6 +224,7 @@ graph TD
     }
 
     const analyzeChapter = async () => {
+        setChapterAnalyzeLoading(true);
         await axiosInstance.post('api/chapter-storyboard', {
             chapter_text: chapters[currentChapter].text,
             chapter_number: chapters[currentChapter].order
@@ -208,15 +240,46 @@ graph TD
                 };
                 return newChapters;
             });
+            setChapterAnalyzeLoading(false);
             console.log(chapters);
             toast.success('Chapter analyzed');
+        }).catch(() => {
+            setChapterAnalyzeLoading(false);
+            toast.error('Failed to analyze chapter');
         })
     }
 
     const resetBook = () => {
-        setChapters([]);
+        setChapters([dummyBook]);
         setCurrentChapter(0);
         localStorage.setItem('chapters', JSON.stringify([]));
+    }
+
+    const summarizeBook = async () => {
+        
+    }
+
+    const logicInspectChapters = async () => {
+        if(isTextEditing){
+            toast.error('Please finish editing before summarizing');
+            return;
+        }
+
+        let character_summaries = "";
+        let location_summaries = "";
+
+        for(let i = 0; i < chapters.length; i++){
+            if(chapters[i].character_summary == "" || chapters[i].location_summary == ""){
+                await analyzeText(i);
+            }
+            character_summaries += chapters[i].character_summary;
+            location_summaries += chapters[i].location_summary;
+        }
+
+        await logicInspect(JSON.stringify({
+            character_summaries: character_summaries,
+            location_summaries: location_summaries
+        }));
     }
 
     return (
@@ -224,8 +287,11 @@ graph TD
             <div className="flex items-center justify-between mb-4">
                 <h2 className="text-2xl font-bold mb-4">Your book</h2>
                 <div className="flex gap-2">
+                    
                     <Button onClick={resetBook} variant="destructive">Clear book</Button>
                     <StylePopup updateStylePrompt={updateStylePrompt}/>
+                    <Button onClick={summarizeBook}>Summarize</Button>
+                    <ExportPopup content={chapters.map(chapter => chapter.text).join('\n\n')}/>
                 </div>
             </div>
             
@@ -264,12 +330,10 @@ graph TD
                     /> : <div dangerouslySetInnerHTML={{ __html: chapters[currentChapter].text }}></div>}
 
                     <div className="flex gap-2 mt-2 justify-end">
-                        <Button onClick={handleEditText}>{isTextEditing ? "Save" : "Edit"}</Button>
+                        <Button onClick={handleEditText} size="icon" variant="outline">{isTextEditing ? <Check className="h-4 w-4" /> : <Edit className="h-4 w-4" />}</Button>
                     </div>
                 </div>
                 <div className="bg-zinc-800 flex-1 px-4 py-4">
-                    <Button onClick={analyzeText}>Test text Analyze</Button>
-                    <Button onClick={analyzeChapter}>Test Chapter Analyze</Button>
                     <div>
                         <Menubar>
                             <MenubarMenu>
@@ -290,19 +354,32 @@ graph TD
                     
             
                     {currentView === "location_summary" && <LocationSummary location_summary={chapters[currentChapter].location_summary}/>}
-                    {currentView === "character_summary" && <CharacterSummary character_summary={chapters[currentChapter].character_summary}/>}
+                    {currentView === "character_summary" && chapters[currentChapter].character_summary ? <CharacterSummary character_summary={chapters[currentChapter].character_summary}/> : <div>Loading...</div>}
                     {currentView === "character_relationship_graph" && <MermaidChart chart={chart}/>}
                     {currentView === "comments" && (
-                        <div className="mt-4 p-3 bg-zinc-700 rounded-md">
-                            <h3 className="text-sm font-medium mb-1">Feedback:</h3>
-                            {activeTextSelection && (
-                                <div className="text-xs italic bg-zinc-600 p-2 mb-2 rounded">
-                                    "{activeTextSelection}"
-                                </div>
-                            )}
-                            <p className="text-sm">{chapters[currentChapter].comments[comment] || "Click on marked text to view comments"}</p>
+                        <div>
+                            <div className="flex gap-2 justify-center">
+                                <Button onClick={() => analyzeText(currentChapter)}>Style text Analyze</Button>
+                                {currentChapter > 0 && <Button onClick={logicInspectChapters}>Logic inspect</Button>}
+                            </div>
+                            <div className="mt-4 p-3 bg-zinc-700 rounded-md">
+                                <h3 className="text-sm font-medium mb-1">Feedback:</h3>
+                                {activeTextSelection && (
+                                    <div className="text-xs italic bg-zinc-600 p-2 mb-2 rounded">
+                                        "{activeTextSelection}"
+                                    </div>
+                                )}
+                                <p className="text-sm">{chapters[currentChapter].comments[comment] || "Click on marked text to view comments"}</p>
+                            </div>
                         </div>
                     )}
+
+                    <div className="flex justify-center mt-[auto] gap-4 items-center pt-6">
+                        <Button onClick={analyzeChapter} disabled={chapterAnalyzeLoading}>
+                            {chapterAnalyzeLoading && <Loader2 className="animate-spin" />}
+                            Analyze Chapter
+                        </Button>
+                    </div>
                 </div>
             </div>
         </div>

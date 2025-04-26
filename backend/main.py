@@ -8,6 +8,7 @@ from pydantic import BaseModel
 from typing import Optional, List
 from loguru import logger
 from exports.word_export import markdown_to_docx_with_comments, MarkdownToWordRequest
+import base64
 
 app = FastAPI()
 
@@ -53,7 +54,7 @@ async def markdown_to_docx_with_comments_endpoint(
 ):
     docx_bytes = await markdown_to_docx_with_comments(request)
     return Response(
-        content=docx_bytes,
+        content=base64.b64encode(docx_bytes).decode('utf-8'),
         media_type="application/vnd.openxmlformats-officedocument.wordprocessingml.document",
         headers={
             "Content-Disposition": f"attachment; filename={request.filename}.docx"

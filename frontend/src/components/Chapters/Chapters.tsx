@@ -23,16 +23,16 @@ const Chapters = ({chapters, handleAddnewChapter, changeChapter, currentChapter,
   return (
     <div className="relative">
     <Carousel setApi={setApi}>
-      <CarouselContent className="gap-4">
+      <CarouselContent className="gap-4 ml-0">
         {chapters.map(chapter => (
           <CarouselItem key={chapter.order} onClick={() => {
             changeChapter(chapter.order)
-          }} className={"relative basis-1/6 px-4 py-4" + (currentChapter === chapter.order ? " bg-zinc-600" : " bg-zinc-700")}>
+          }} className={"relative basis-1/6 px-4 py-4" + (currentChapter === chapter.order ? " bg-zinc-600" : " bg-zinc-800")}>
             <Button variant="destructive" size="icon" onClick={() => removeChapter(chapter.order)} className="absolute top-[-4px] right-[-4px]">
               <Trash className="h-4 w-4" />
             </Button>
             <div className="flex flex-col gap-2">
-              <h3 className="text-lg font-semibold">{chapter.title}</h3>
+              <h3 className="text-md text-center font-semibold">{chapter.title}</h3>
             </div>
           </CarouselItem>
         ))}
