@@ -18,7 +18,7 @@ DO NOT include any characters that are not mentioned in the text.
 DO NOT add your judgement of the character's role, or their motivations.
 DO NOT write about what doesn't exist -- if there is no relationship between characters, don't mention.
 If given a list of characters from chapter chunks, combine them into consistent character summaries.
-Always include from which chapter the information is from. You can indicate it by writing [chapter: chapter_number] next to that information.
+Always include from which chapter the information is from. You must indicate it by writing [chapter: chapter_number] next to that information.
 When summarizing combined chapter chunks, make sure you correlate each information with the correct chapter.
 Provide your response in the following format:
 
@@ -40,7 +40,7 @@ DO NOT include any locations that are not mentioned in the text.
 DO NOT add your judgement of the location's role, or its importance or do not add details that are not mentioned in the text.
 If given a list of locations from chapter chunks, combine them into consistent location summaries.
 When summarizing combined chapter chunks, make sure you correlate each information with the correct chapter.
-Always include from which chapter the information is from. You can indicate it by writing [chapter: chapter_number] next to that information.
+Always include from which chapter the information is from. You must indicate it by writing [chapter: chapter_number] next to that information.
 Provide your response in the following format:
 
  ## ** Location Name **
@@ -61,7 +61,7 @@ DO NOT include any events that are not mentioned in the text.
 DO NOT add your judgement of the event's importance or do not add details that are not mentioned in the text.
 If given a list of events from chapter chunks, combine them into consistent event summaries.
 When summarizing combined chapter chunks, make sure you correlate each information with the correct chapter.
-Always include from which chapter the information is from. You can indicate it by writing [chapter: chapter_number] next to that information.
+Always include from which chapter the information is from. You must indicate it by writing [chapter: chapter_number] next to that information.
 Provide your response in the following format:
 
  ## ** Event Name **
