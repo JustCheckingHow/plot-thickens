@@ -54,8 +54,7 @@ graph TD
 
     const [commentsDict, setApiCommentsDict] = useState({});
     const textContainerRef = useRef<HTMLDivElement>(null);
-    const [commentsDict, setApiCommentsDict] = useState({});
-    const [currentView, setCurrentView] = useState<'character_summary' | 'location_summary' | 'character_relationship_graph' | 'comments'>('comments');
+    const [currentView, ___] = useState<'character_summary' | 'location_summary' | 'character_relationship_graph' | 'comments'>('comments');
 
     useEffect(() => {
         if (!lastMessage) return;
