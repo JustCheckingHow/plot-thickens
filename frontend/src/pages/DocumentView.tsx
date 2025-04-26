@@ -32,7 +32,7 @@ const DocumentView = () => {
     const dummyBook = {
         "title": "Example title",
         "order": 0,
-        "text": 'The hum of the Odyssey\'s life support was a constant, mournful drone in Captain Eva Rostova\'s ears. It was the sound of scarcity, the sound of a colony slowly, inevitably, dimming into oblivion. Below, on the surface of Cygnus X-1\'s third moon, Station Epsilon flickered like a dying ember. Power reserves were critical. The fusion core, once a vibrant heart, now sputtered, fed by dwindling deuterium mined from the moon\'s thin crust. Eva ran a calloused hand over the worn navigation console. Images of her daughter, Anya, played on a small, cracked screen beside it. Anya\'s face, thin but still bright-eyed, a stark reminder of what was at stake. "Find the light, Mama," Anya had whispered during their last comms burst, her voice frail. That light, they hoped, lay trillions of kilometers away, in the uncharted sector designated \'Xylos\'. Scans from ancient probes hinted at unusual energy signatures, isotopes unlike anything known in colonized space. Yo mama test xd. It was a long shot, a desperate gamble, but the only one they had left. Eva wasn\'t a natural explorer. She was an engineer, a pilot who preferred the predictable physics of orbital mechanics to the terrifying unknowns of deep space. But when the call went out for a volunteer to pilot the Odyssey, their last FTL-capable ship, towards the faint hope of Xylos, Eva hadn\'t hesitated. Her skills were necessary, yes, but it was Anya\'s face, and the faces of every child on Epsilon, that fueled her resolve. She carried the weight of a dying colony on her shoulders, and that weight was a constant, crushing pressure, yet it forged her determination into something unbreakable. Failure was not an option.',
+        "text": "The hum of the Odyssey's life support was a constant, mournful drone in Captain Eva Rostova's ears. It was the sound of scarcity, the sound of a colony slowly, inevitably, dimming into oblivion. Below, on the surface of Cygnus X-14's third moon, Station Epsilon flickered like a dying ember. Power reserves were critical. The fusion core, once a vibrant heart, now sputtered, fed by dwindling deuterium mined from the moon's thin crust.Eva ran a calloused hand over the worn navigation console. Images of her daughter, Anya, played on a small, cracked screen beside it. Anya's face, thin but still bright-eyed, a stark reminder of what was at stake. 'Find the light, Mama,' Anya had whispered during their last comms burst, her voice frail.That light, they hoped, lay trillions of kilometers away, in the uncharted sector designated 'Xylos'. Scans from ancient probes hinted at unusual energy signatures, isotopes unlike anything known in colonized space. It was a long shot, a desperate gamble, but the only one they had left.Eva wasn't a natural explorer. She was an engineer, a pilot who preferred the predictable physics of orbital mechanics to the terrifying unknowns of deep space. But when the call went out for a volunteer to pilot the Odyssey, their last FTL-capable ship, towards the faint hope of Xylos, Eva hadn't hesitated. Her skills were necessary, yes, but it was Anya's face, and the faces of every child on Epsilon, that fueled her resolve. She carried the weight of a dying colony on her shoulders, and that weight was a constant, crushing pressure, yet it forged her determination into something unbreakable. Failure was not an option.Beside her, Jax, her co-pilot and the mission's reluctant xenobotanist, adjusted a life support setting. 'Entering jump coordinates, Cap'n,' he announced, his voice flat. Jax had argued against the mission, citing the astronomical odds and the risk of losing their last functional ship. He was a pragmatist, his feet firmly planted on solid (or as solid as moon dust gets) ground. He didn't share Eva's burning, almost spiritual, belief in the mission's necessity, but he respected her conviction and the dire circumstances.'Engage,' Eva ordered, her gaze fixed on the starfield ahead. The console glowed, the ship shuddered, and the familiar, disorienting rip of faster-than-light travel enveloped the Odyssey. They were leaving the fading light of Cygnus X-14 behind, racing towards a distant, uncertain dawn. The fate of Station Epsilon rested entirely on what they would find on Xylos. Eva clutched a small, smooth stone Anya had given her. She would find the light. She had to.",
         "character_summary": "",
         "location_summary": "",
         "character_relationship_graph": "",
@@ -46,6 +46,8 @@ const DocumentView = () => {
     const [currentChapter, setCurrentChapter] = useState(0);
     const [isTextEditing, setIsTextEditing] = useState(false);
     const [chapterAnalyzeLoading, setChapterAnalyzeLoading] = useState(false);
+    const [styleAnalyzeLoading, setStyleAnalyzeLoading] = useState(false);
+    const [logicInspectLoading, setLogicInspectLoading] = useState(false);
     const [chart, __] = useState(`
 graph TD
     Eva-->|mother|Anya
@@ -92,6 +94,9 @@ graph TD
                 return newChapters;
             });
         }
+        if (data && data.status === "done") {
+            setLogicInspectLoading(false);
+        }
     }, [logicInspectLastMessage])
 
     useEffect(() => {
@@ -120,8 +125,15 @@ graph TD
         if (data && data.status === "style_prompt_updated") {
             toast.success("Style text updated");
         }
+        if (data && data.status === "no_issues_found") {
+            toast.success("No style issues found in your text!");
+        }
+        if (data && data.status === "done") {
+            setStyleAnalyzeLoading(false);
+        }
         if(data && data.error){
             toast.error(data.error);
+            setStyleAnalyzeLoading(false);
         }
     }, [lastMessage]);
 
@@ -190,6 +202,7 @@ graph TD
     }
 
     const analyzeText = async (chapterNumber: number) => {
+        setStyleAnalyzeLoading(true);
         await sendMessage(JSON.stringify({
             "text": chapters[chapterNumber].text
         }));
@@ -202,6 +215,10 @@ graph TD
         } else {
             setIsTextEditing(true);
         }
+    }
+
+    const stripCommentTags = (text: string): string => {
+        return text.replace(/<comment id=[^>]*>|<\/comment>/g, '');
     }
 
     const removeChapter = (order: number) => {
@@ -265,6 +282,8 @@ graph TD
             return;
         }
 
+        setLogicInspectLoading(true);
+        
         let character_summaries = "";
         let location_summaries = "";
 
@@ -319,7 +338,7 @@ graph TD
                         return newChapters;
                     })} /><br/>
                     {(isTextEditing) ? <Textarea
-                        value={chapters[currentChapter].text || ""}
+                        value={stripCommentTags(chapters[currentChapter].text) || ""}
                         onChange={(e) => setChapters(prev => {
                             const newChapters = [...prev];
                             newChapters[currentChapter] = {
@@ -358,8 +377,14 @@ graph TD
                     {currentView === "comments" && (
                         <div>
                             <div className="flex gap-2 justify-center">
-                                <Button onClick={() => analyzeText(currentChapter)}>Style text Analyze</Button>
-                                {currentChapter > 0 && <Button onClick={logicInspectChapters}>Logic inspect</Button>}
+                                <Button onClick={() => analyzeText(currentChapter)} disabled={styleAnalyzeLoading}>
+                                    {styleAnalyzeLoading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                                    Style text Analyze
+                                </Button>
+                                {currentChapter > 0 && <Button onClick={logicInspectChapters} disabled={logicInspectLoading}>
+                                    {logicInspectLoading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                                    Logic inspect
+                                </Button>}
                             </div>
                             <div className="mt-4 p-3 bg-zinc-700 rounded-md">
                                 <h3 className="text-sm font-medium mb-1">Feedback:</h3>
