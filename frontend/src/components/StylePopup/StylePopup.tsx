@@ -87,7 +87,7 @@ export function StylePopup({updateStylePrompt}: {updateStylePrompt: (style: stri
           <Button className="w-full bg-[#4b524b] text-white">Edit Text Style</Button>
         </DialogTrigger>
 
-        <DialogContent className="sm:max-w-[425px]">
+        <DialogContent className="sm:max-w-[425px] bg-white">
           <DialogHeader>
             <DialogTitle>Edit Text Style</DialogTitle>
             <form className={cn("grid items-start gap-4")} onSubmit={handleSubmit}>

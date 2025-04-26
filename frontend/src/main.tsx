@@ -4,13 +4,16 @@ import { BrowserRouter } from 'react-router-dom'
 import App from './App'
 import './index.css'
 import { ModalProvider } from './context/ModalContext'
+import { ThemeProvider } from 'next-themes'
 
 ReactDOM.createRoot(document.getElementById('root')!).render(
   <React.StrictMode>
     <BrowserRouter>
+    <ThemeProvider forcedTheme="light">
     <ModalProvider>
       <App />
     </ModalProvider>
+    </ThemeProvider>
     </BrowserRouter>
   </React.StrictMode>,
 ) 
