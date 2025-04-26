@@ -24,8 +24,13 @@ def docx_to_markdown_chapters(file_path: str) -> tuple[List[str], List[str]]:
     headings = []
     for paragraph in doc.paragraphs:
         if paragraph.style.name.startswith("Heading"):
-            level = int(paragraph.style.name.split(" ")[1])
-            headings.append((level, paragraph.text))
+            try:
+                level = int(paragraph.style.name.split(" ")[1])
+                headings.append((level, paragraph.text))
+            except (IndexError, ValueError):
+                # Handle cases where the heading style doesn't follow "Heading N" format
+                # Default to level 1 if we can't determine the level
+                headings.append((1, paragraph.text))
 
     # If no headings found, return the whole document as a single chapter
     if not headings:
@@ -38,9 +43,15 @@ def docx_to_markdown_chapters(file_path: str) -> tuple[List[str], List[str]]:
     chapter_indices = []
     for i, para in enumerate(doc.paragraphs):
         if para.style.name.startswith("Heading"):
-            level = int(para.style.name.split(" ")[1])
-            if level == min_level:
-                chapter_indices.append(i)
+            try:
+                level = int(para.style.name.split(" ")[1])
+                if level == min_level:
+                    chapter_indices.append(i)
+            except (IndexError, ValueError):
+                # Default to level 1 if we can't determine the level
+                level = 1
+                if min_level == 1:
+                    chapter_indices.append(i)
 
     # Add a final index for the end of document
     chapter_indices.append(len(doc.paragraphs))
