@@ -8,7 +8,7 @@ import { toast } from "sonner";
 import { Buffer } from "buffer";
 
 
-const ExportPopup = ({content}: {content: string}) => {
+const ExportPopup = ({content, comments}: {content: string, comments: Record<string, string>}) => {
     const [open, setOpen] = useState(false);
     const [author, setAuthor] = useState('');
     const [filename, setFilename] = useState('');
@@ -22,7 +22,8 @@ const ExportPopup = ({content}: {content: string}) => {
             await axiosInstance.post('api/markdown-to-docx-with-comments', {
                 markdown_content: content,
                 filename: filename,
-                author_name: author
+                author_name: author,
+                comments: comments
             }).then((response) => {
                 console.log(response);
                 const file = Buffer.from(response.data, 'base64');

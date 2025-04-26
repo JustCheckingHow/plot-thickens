@@ -314,7 +314,7 @@ graph TD
                     <Button onClick={resetBook} variant="destructive">Clear book</Button>
                     <StylePopup updateStylePrompt={updateStylePrompt}/>
                     <Button onClick={summarizeBook}>Summarize</Button>
-                    <ExportPopup content={chapters.map(chapter => "# " + chapter.title + "\n\n" + chapter.text).join('\n\n')}/>
+                    <ExportPopup content={chapters.map(chapter => "# " + chapter.title + "\n\n" + chapter.text).join('\n\n')} comments={chapters.map(chapter => chapter.comments).reduce((acc, curr) => ({...acc, ...curr}), {})} />
                 </div>
             </div>
             
