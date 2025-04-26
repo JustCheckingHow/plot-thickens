@@ -1,11 +1,26 @@
-import React from 'react';
+import React from "react";
+import ReactMarkdown from "react-markdown";
+import { cn } from "@/lib/utils";
 
-type MarkdownRendererProps = {
+interface MarkdownRendererProps {
   content: string;
+  className?: string;
+}
+
+const MarkdownRenderer: React.FC<MarkdownRendererProps> = ({
+  content,
+  className,
+}) => {
+  return (
+    <div className={cn("markdown-renderer prose prose-invert", className)}>
+      {content.split('\n\n').map((paragraph, index) => (
+        <>
+          <ReactMarkdown key={index}>{paragraph}</ReactMarkdown>
+          <br />
+        </>
+      ))}
+    </div>
+  );
 };
 
-const MarkdownRenderer: React.FC<MarkdownRendererProps> = ({ content }) => {
-  return <div>{content}</div>;
-};
-
-export default MarkdownRenderer;
+export default MarkdownRenderer; 

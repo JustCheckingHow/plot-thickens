@@ -19,12 +19,12 @@ Run the comment tool as many times as needed.
 class LogicInspector:
     def __init__(
         self,
-        character_summaries: str,
-        location_summaries: str,
+        character_summary: str,
+        location_summary: str,
         callback: Optional[Union[Callable, Awaitable]] = None,
     ):
-        self.character_summaries = character_summaries
-        self.location_summaries = location_summaries
+        self.character_summary = character_summary
+        self.location_summary = location_summary
         tools = []
         if callback:
             tools = [insert_comment(callback)]
@@ -40,5 +40,5 @@ class LogicInspector:
     @track(name="inspect_logic")
     async def inspect_logic(self, text: str) -> str:
         # Combine the style prompt and text for the agent
-        input_text = f"Character Summaries:```\n{self.character_summaries}\n```\n\nLocation Summaries:```\n{self.location_summaries}\n```\n\nText to check:\n```\n{text}\n```\nRemember, comment on all deviations from the logic."
+        input_text = f"Character Summaries:```\n{self.character_summary}\n```\n\nLocation Summaries:```\n{self.location_summary}\n```\n\nText to check:\n```\n{text}\n```\nRemember, comment on all deviations from the logic."
         return await self.runner.run(self.agent, input_text)

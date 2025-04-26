@@ -9,6 +9,8 @@ you need to insert a comment into the text explaining the issue.
 Remember that the text could be a background text, so comment only on stark deviations from the style guide. 
 Lack of comments is also an acceptable output.
 Don't overlap comments. If you have more than one comment for a given text fragment, merge them into one comment.
+Make sure that the style is consistent throughout the text. If the style is not consistent, comment on it.
+Be extremely harsh and strict, but remain professional. 
 """
 
 class StyleGuard:

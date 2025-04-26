@@ -1,7 +1,12 @@
 from agents import function_tool
-from typing_extensions import TypedDict
-from typing import Callable, Union, Awaitable
+from openai import AsyncOpenAI
+from typing_extensions import TypedDict, TYPE_CHECKING
+from typing import Callable, List, Union, Awaitable
 import inspect
+from loguru import logger
+
+if TYPE_CHECKING:
+    from ..main import Storyboard
 
 
 class InsertCommentSuggestion(TypedDict):
@@ -62,3 +67,24 @@ def insert_comment(callback: Union[Callable, Awaitable]) -> Callable:
             return callback(comment["text"], formatted_text)
 
     return _inner
+
+
+async def get_comment_discussion(comments: List[str], current_storyboard: type["Storyboard"]) -> str:
+    """Get model's reply to the comments"""
+    comments_oai = []
+    for idx, comment in enumerate(comments):
+        role = "assistant" if idx % 2 == 0 else "user"
+        comments_oai.append({"role": role, "content": comment})
+    
+    logger.info(f"Comments: {comments}")
+    client = AsyncOpenAI()
+    response = await client.chat.completions.create(
+        model="gpt-4o",
+        messages=[
+            {"role": "system", "content": f"""You are a helpful assistant that discusses comments with the user. 
+Your objective is to converge to a single comment which will help the user improve the story.
+Current Storyboard: {current_storyboard}"""},
+            *comments_oai
+        ]
+    )
+    return response.choices[0].message.content

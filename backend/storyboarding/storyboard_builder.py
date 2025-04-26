@@ -5,6 +5,7 @@ from chunking_utils import chunk_text
 from loguru import logger
 from opik import track
 import os
+import asyncio
 
 CHARACTER_EXTRACTOR_PROMPT = """
 You are an expert at storyboard writer. 
@@ -147,33 +148,42 @@ class StoryBoardBuilder:
         self,
         chapter_number: int,
         chapter_text: str,
-        chunk_size: int = 1000,
+        chunk_size: int = 10000,
         overlap: int = 50,
     ):
         """Process a chapter and extract key events"""
         chapter_chunked_data = []
         chunk_id = 0
+        # Create tasks for all chunks
+        tasks = []
         for chunk in chunk_text(chapter_text, chunk_size, overlap):
             logger.info(
-                f"Processing chunk {chunk_id} of {len(chapter_text) // chunk_size}"
+                f"Preparing chunk {chunk_id} of {len(chapter_text) // chunk_size}"
             )
             prompt = f"""
             CHUNK from chapter {chapter_number}:
             {chunk}
             """
-            location_chapter_summary = await self._extract_chapter_locations(prompt)
-            character_chapter_summary = await self._extract_chapter_characters(prompt)
-            timeline_chapter_summary = await self._build_timeline(prompt)
-            plotpoints_chapter_summary = await self._extract_chapter_plotpoints(prompt)
+            # Create tasks for each extraction type
+            tasks.append(self._extract_chapter_locations(prompt))
+            tasks.append(self._extract_chapter_characters(prompt))
+            tasks.append(self._build_timeline(prompt))
+            tasks.append(self._extract_chapter_plotpoints(prompt))
+            chunk_id += 1
+        
+        # Gather all results
+        results = await asyncio.gather(*tasks)
+        
+        # Process results into chapter_chunked_data
+        for i in range(0, len(results), 4):
             chapter_chunked_data.append(
                 {
-                    "location_chapter_summary": location_chapter_summary,
-                    "character_chapter_summary": character_chapter_summary,
-                    "timeline_chapter_summary": timeline_chapter_summary,
-                    "plotpoints_chapter_summary": plotpoints_chapter_summary,
+                    "location_chapter_summary": results[i],
+                    "character_chapter_summary": results[i+1],
+                    "timeline_chapter_summary": results[i+2],
+                    "plotpoints_chapter_summary": results[i+3],
                 }
             )
-            chunk_id += 1
         combined_character_data = ""
         combined_location_data = ""
         combined_timeline_data = ""
@@ -214,14 +224,14 @@ class StoryBoardBuilder:
         
         logger.info("Finished processing chapter...")
         return {
-            "character_summaries": summary_character_data,
-            "location_summaries": summary_location_data,
-            "timeline_summaries": summary_timeline_data,
-            "plotpoints_summaries": summary_plotpoints_data,
+            "character_summary": summary_character_data,
+            "location_summary": summary_location_data,
+            "timeline_summary": summary_timeline_data,
+            "plotpoint_summary": summary_plotpoints_data,
         }
 
     @track(name="create_character_relationship_graph")
-    async def create_character_relationship_graph(self, character_summaries: str):
+    async def create_character_relationship_graph(self, character_summary: str):
         """Create a Mermaid graph of relationships between characters from character summaries."""
         # Create a relationship extractor agent
         relationship_agent = Agent(
@@ -243,7 +253,8 @@ graph TD
     character3-->|relationship|character1
     etc.
 ```
-Use character names as node IDs and relationship types as edge labels.
+Use character names as node IDs and relationship types as edge labels. Don't use spaces, use underscores.
+It's imperative that you output valid Mermaid syntax.
 """,
             model=self.model,
         )
@@ -251,7 +262,7 @@ Use character names as node IDs and relationship types as edge labels.
         # Prepare the prompt with character summaries
         prompt = f"""
 HERE ARE THE CHARACTER SUMMARIES:
-{character_summaries}
+{character_summary}
 
 Create a Mermaid relationship graph based on these summaries.
 """
