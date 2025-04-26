@@ -59,69 +59,93 @@ const Nav = ({
                 <ProjectSelect chapters={chapters} changeChapter={changeChapter} />
             </div>
             <ul className="nav__ul">
-              <li onClick={() => handleVisibleModal("characters")} className={modalVisible === "characters" ? "active" : ""}>
-              <div className="nav__ul__icon">
-                <Users className="h-5 w-5" />
-              </div>
-              <span>Character Summary</span>
+              <li onClick={() => handleVisibleModal("characters")} className={`cursor-pointer ${modalVisible === "characters" ? "active" : ""}`}>
+                <div className="nav__ul__icon">
+                  <Users className="h-5 w-5" />
+                </div>
+                <span>Character Summary</span>
               </li>
-              <li onClick={() => handleVisibleModal("locations")} className={modalVisible === "locations" ? "active" : ""}>
-              <div className="nav__ul__icon">
-                <LocateIcon className="h-5 w-5" />
-              </div>
-              <span>Location Summary</span>
+              <li onClick={() => handleVisibleModal("locations")} className={`cursor-pointer ${modalVisible === "locations" ? "active" : ""}`}>
+                <div className="nav__ul__icon">
+                  <LocateIcon className="h-5 w-5" />
+                </div>
+                <span>Location Summary</span>
               </li>
-              <li onClick={() => handleVisibleModal("character_relationship_graph")} className={modalVisible === "character_relationship_graph" ? "active" : ""}>
-              <div className="nav__ul__icon">
-                <LucideGitGraph className="h-5 w-5" />
-              </div>
-              <span>Character Relationship Graph</span>
+              <li onClick={() => handleVisibleModal("character_relationship_graph")} className={`cursor-pointer ${modalVisible === "character_relationship_graph" ? "active" : ""}`}>
+                <div className="nav__ul__icon">
+                  <LucideGitGraph className="h-5 w-5" />
+                </div>
+                <span>Character Relationship Graph</span>
               </li>
-              <li onClick={() => handleVisibleModal("plot_points")} className={modalVisible === "plot_points" ? "active" : ""}>
-              <div className="nav__ul__icon">
-                <Pointer className="h-5 w-5" />
-              </div>
-              <span>Plot Points</span>
+              <li onClick={() => handleVisibleModal("plot_points")} className={`cursor-pointer ${modalVisible === "plot_points" ? "active" : ""}`}>
+                <div className="nav__ul__icon">
+                  <Pointer className="h-5 w-5" />
+                </div>
+                <span>Plot Points</span>
               </li>
-              <li onClick={() => handleVisibleModal("timeline_summary")} className={modalVisible === "timeline_summary" ? "active" : ""}>
-              <div className="nav__ul__icon">
-                <TimerIcon className="h-5 w-5" />
-              </div>
-              <span>Timeline Summary</span>
+              <li onClick={() => handleVisibleModal("timeline_summary")} className={`cursor-pointer ${modalVisible === "timeline_summary" ? "active" : ""}`}>
+                <div className="nav__ul__icon">
+                  <TimerIcon className="h-5 w-5" />
+                </div>
+                <span>Timeline Summary</span>
               </li>
             </ul>
             <div style={{marginTop: "auto"}}>
               <div className="flex gap-2 mb-2">
                 <Button onClick={async() => {
-                  setLoading("style");
-                  await analyzeText(currentChapter);
-                  setLoading(null);
-                }} disabled={loading === "style"}>
-                    {loading === "style" && <Loader2 className="animate-spin" />}
-                    Analyze Style
+                  try {
+                    setLoading("style");
+                    await analyzeText(currentChapter);
+                  } catch (error) {
+                    console.error("Error during style analysis:", error);
+                  } finally {
+                    setLoading(null);
+                  }
+                }} disabled={loading !== null}>
+                  {loading === "style" ? (
+                    <><Loader2 className="h-4 w-4 animate-spin mr-2" /> Analyzing Style...</>
+                  ) : (
+                    "Analyze Style"
+                  )}
                 </Button>
               </div>
               <div className="flex gap-2 mb-2">
                 <Button onClick={async() => {
-                  setLoading("logic");
-                  await logicInspectChapters(currentChapter);
-                  setLoading(null);
-                }} disabled={loading === "logic"}>
-                    {loading === "logic" && <Loader2 className="animate-spin" />}
-                    Logic Inspect
-                </Button>
-              </div>
-              <div className="flex gap-2 mb-2">
-                <Button onClick={async () => {
-                  setLoading("grammy");
-                  await analyzeGrammar(currentChapter);
-                  setLoading(null);
-                }} disabled={loading === "grammy"}>
-                    {loading === "grammy" && <Loader2 className="animate-spin" />}
-                    Analyze Grammar
+                  try {
+                    setLoading("grammy");
+                    await analyzeGrammar(currentChapter);
+                  } catch (error) {
+                    console.error("Error during grammar analysis:", error);
+                  } finally {
+                    setLoading(null);
+                  }
+                }} disabled={loading !== null}>
+                  {loading === "grammy" ? (
+                    <><Loader2 className="h-4 w-4 animate-spin mr-2" /> Analyzing Grammar...</>
+                  ) : (
+                    "Analyze Grammar"
+                  )}
                 </Button>
               </div>
 
+              <div className="flex gap-2 mb-2">
+                <Button onClick={async() => {
+                  try {
+                    setLoading("logic");
+                    await logicInspectChapters(currentChapter);
+                  } catch (error) {
+                    console.error("Error during logic inspection:", error);
+                  } finally {
+                    setLoading(null);
+                  }
+                }} disabled={loading !== null} className="w-full cursor-pointer dark:bg-zinc-300 hover:bg-zinc-100 dark:hover:bg-zinc-400">
+                  {loading === "logic" ? (
+                    <><Loader2 className="h-4 w-4 animate-spin mr-2" /> Inspecting Logic...</>
+                  ) : (
+                    "Logic Inspect"
+                  )}
+                </Button>
+              </div>
               <StylePopup updateStylePrompt={updateStylePrompt}/>
               <div className="flex gap-2 mt-2">
                 {/* <Button onClick={resetBook} variant="destructive" size={"icon"}>
