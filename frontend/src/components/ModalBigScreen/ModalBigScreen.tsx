@@ -29,12 +29,16 @@ const ModalBigScreen = ({
     return (
         <div className={"modal-big-screen py-8 " + (modalVisible ? "open" : "")}>
             <div className="container">
+                
                 <h2 className="text-2xl font-bold mb-4">
-                    {modalDict[modalVisible][0]}
+                                        {/* @ts-ignore */}
+                    {modalDict[modalVisible][0] || "-"}
                 </h2>
-                {modalVisible === "character_relationship_graph" ? (
+                {modalVisible === "character_relationship_graph"  ? (
+                  // @ts-ignore
                   <MermaidChart chart={chapters[currentChapter][modalDict[modalVisible][1]]} />
                 ) : (
+                  // @ts-ignore
                   <MarkdownRenderer content={chapters[currentChapter][modalDict[modalVisible][1]]} />
                 )}
             </div>

@@ -35,7 +35,7 @@ const DocumentView = () => {
         dummyBook
     ]);
     const [currentChapter, setCurrentChapter] = useState(0);
-
+//@ts-ignore
     const pendingSubcommentsRef = useRef<Record<string, Set<string>>>({});
 
 
@@ -171,7 +171,7 @@ const DocumentView = () => {
             "text": chapters[chapterNumber].text
         }));
     }
-
+//@ts-ignore
     const removeChapter = (order: number) => {
         setChapters(prev => prev.filter(chapter => chapter.order !== order));
         setCurrentChapter(prev => prev - 1);

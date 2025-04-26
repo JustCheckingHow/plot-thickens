@@ -1,7 +1,7 @@
 import { Popover, PopoverTrigger, PopoverContent } from "@/components/ui/popover"
 import { Command, CommandInput, CommandList, CommandEmpty, CommandGroup, CommandItem } from "@/components/ui/command"
 import { Button } from "@/components/ui/button"
-import { Check, ChevronsUpDown, Loader2, LucideGitGraph, Pointer, TimerIcon, Users, Trash2, LocateIcon } from "lucide-react"
+import { Check, ChevronsUpDown, Loader2, LucideGitGraph, Pointer, TimerIcon, Users, LocateIcon } from "lucide-react"
 import { useState, useEffect, useContext } from "react"
 import { cn } from "@/lib/utils"
 import "./Nav.scss"
