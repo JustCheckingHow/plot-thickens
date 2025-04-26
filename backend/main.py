@@ -54,7 +54,7 @@ async def markdown_to_docx_with_comments_endpoint(
 ):
     docx_bytes = await markdown_to_docx_with_comments(request)
     return Response(
-        content=base64.b64encode(docx_bytes).decode('utf-8'),
+        content=base64.b64encode(docx_bytes).decode("utf-8"),
         media_type="application/vnd.openxmlformats-officedocument.wordprocessingml.document",
         headers={
             "Content-Disposition": f"attachment; filename={request.filename}.docx"
@@ -137,9 +137,13 @@ async def chapter_storyboard(chapter_request: ChapterRequest) -> Storyboard:
 
 @app.websocket("/api/style-guard")
 async def websocket_style_guard(websocket: WebSocket):
-    async def send_comment(original_text, text_with_comments):
+    async def send_comment(original_text, text_with_comments, suggestion):
         await websocket.send_json(
-            {"original_text": original_text, "comment": text_with_comments}
+            {
+                "original_text": original_text,
+                "comment": text_with_comments,
+                "suggestion": suggestion,
+            }
         )
         return text_with_comments
 
@@ -188,13 +192,16 @@ async def websocket_style_guard(websocket: WebSocket):
 @app.websocket("/api/logic-inspector")
 async def websocket_logic_inspector(websocket: WebSocket):
     issues_found = False
-    
+
     async def send_comment(original_text, text_with_comments):
         nonlocal issues_found
         issues_found = True
         logger.info(f"Issues found: {issues_found}")
         await websocket.send_json(
-            {"original_text": original_text, "comment": text_with_comments}
+            {
+                "original_text": original_text,
+                "comment": text_with_comments,
+            }
         )
         return text_with_comments
 
@@ -202,7 +209,7 @@ async def websocket_logic_inspector(websocket: WebSocket):
 
     # Create StyleGuard instance
     logic_inspector = None
-    
+
     try:
         while True:
             # Receive next message
@@ -238,10 +245,10 @@ async def websocket_logic_inspector(websocket: WebSocket):
             await logic_inspector.inspect_logic(text)
 
             logger.info("Text processed.")
-            
+
             if not issues_found:
                 await websocket.send_json({"status": "no_issues_found"})
-                
+
             await websocket.send_json({"status": "done"})
 
     except WebSocketDisconnect:
