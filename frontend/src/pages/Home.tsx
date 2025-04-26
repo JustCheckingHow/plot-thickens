@@ -13,6 +13,7 @@ const Home: React.FC = () => {
     const formData = new FormData();
     formData.append('file', file);
     try {
+      setLoading(true);
       const response = await axiosInstance.post('/api/docx-to-markdown', formData, {
         headers: {
           'Content-Type': 'multipart/form-data'
@@ -25,6 +26,8 @@ const Home: React.FC = () => {
       return response.data;
     } catch (error) {
       throw new Error('Failed to upload file');
+    } finally {
+      setLoading(false);
     }
   };
 
