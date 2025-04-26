@@ -20,9 +20,10 @@ import { Label } from "@/components/ui/label";
 import { Check, Edit, Loader2 } from "lucide-react";
 import { MD5 } from "@/lib/utils";
 import ExportPopup from "@/components/ExportPopup/ExportPopup";
-
+import { useLocation } from "react-router-dom";
 
 const DocumentView = () => {
+    const { state } = useLocation();
     const { sendMessage, lastMessage } = useWebSocket(API_URL.replace(/^http/, "ws") + "/api/style-guard", {
         shouldReconnect: () => true
     });
@@ -49,6 +50,13 @@ const DocumentView = () => {
 
     const textContainerRef = useRef<HTMLDivElement>(null);
     const [currentView, setCurrentView] = useState<'character_summary' | 'location_summary' | 'character_relationship_graph' | 'comments'>('comments');
+
+    useEffect(() => {
+        if (state && state.chapters) {
+            setChapters(state.chapters);
+            setCurrentChapter(0);
+        }
+    }, [state])
 
     useEffect(() => {
         const styleText = localStorage.getItem('styleText') || '';
