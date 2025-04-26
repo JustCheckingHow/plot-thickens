@@ -71,15 +71,16 @@ const CommentView = ({
   return (
     <div 
       ref={tooltipRef}
-      className="fixed z-50 shadow-lg w-80 p-3 rounded-md border border-zinc-300 bg-white dark:border-zinc-700"
+      className="fixed z-50 shadow-lg w-80 rounded-md border border-zinc-300 bg-white dark:border-zinc-700"
       style={{ 
+        top: 'auto',
         bottom: 20, 
         right: 20, 
         maxHeight: '50vh',
         overflowY: 'auto',
       }}
     >
-      <div className="flex justify-between items-start mb-2">
+      <div className="flex justify-between p-3 items-start mb-2 sticky top-0 bg-white z-10">
         <h3 className="text-sm font-medium">Feedback:</h3>
         <Button 
           variant="ghost" 
@@ -97,7 +98,7 @@ const CommentView = ({
         </div>
       )}
       
-      <p className="text-sm">{commentText}</p>
+      <p className="text-sm p-3">{commentText}</p>
       
       {suggestion && (
         <div className="mt-2">

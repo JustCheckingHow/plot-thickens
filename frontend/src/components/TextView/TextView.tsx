@@ -5,7 +5,7 @@ import { Label } from "@/components/ui/label";
 import "./TextView.scss";
 import { useEffect, useRef, useState } from "react";
 import { Button } from "@/components/ui/button";
-import { Check, Edit } from "lucide-react";
+import { Check, Edit, Loader2 } from "lucide-react";
 import { MD5 } from "@/lib/utils";
 import { toast } from "sonner";
 import CommentView from "@/components/CommentView/CommentView";
@@ -13,6 +13,7 @@ import axiosInstance from "@/api/axios";
 
 const TextView = ({chapters, setChapters, currentChapter, analyzeText, handleAddnewChapter, setCurrentChapter}: {chapters: Chapter[], setChapters: (chapters: Chapter[]) => void, currentChapter: number, analyzeText: (chapter: number) => void, handleAddnewChapter: () => void, setCurrentChapter: (chapter: number) => void}) => {
     const [isTextEditing, setIsTextEditing] = useState(false);
+    const [isAnalyzing, setIsAnalyzing] = useState(false);
     const textContainerRef = useRef<HTMLDivElement>(null);
     const [comment, setComment] = useState('');
     const [activeTextSelection, setActiveTextSelection] = useState('');
@@ -23,7 +24,17 @@ const TextView = ({chapters, setChapters, currentChapter, analyzeText, handleAdd
     const handleEditText = () => {
         if(isTextEditing){
             setIsTextEditing(false);
-            analyzeText(currentChapter);
+            setIsAnalyzing(true);
+            
+            // Wrap the analyzeText function to handle the loading state
+            Promise.resolve(analyzeText(currentChapter))
+                .catch(error => {
+                    console.error("Error analyzing text:", error);
+                    toast.error("Error analyzing text");
+                })
+                .finally(() => {
+                    setIsAnalyzing(false);
+                });
         } else {
             setIsTextEditing(true);
         }
@@ -279,7 +290,19 @@ const TextView = ({chapters, setChapters, currentChapter, analyzeText, handleAdd
             </div>
             <hr />
             <div className="flex gap-2 mt-2 justify-end">
-                <Button onClick={handleEditText} size="icon">{isTextEditing ? <Check className="h-4 w-4" /> : <Edit className="h-4 w-4" />}</Button>
+                <Button 
+                    onClick={handleEditText} 
+                    size="icon" 
+                    disabled={isAnalyzing}
+                >
+                    {isAnalyzing ? (
+                        <Loader2 className="h-4 w-4 animate-spin" />
+                    ) : isTextEditing ? (
+                        <Check className="h-4 w-4" />
+                    ) : (
+                        <Edit className="h-4 w-4" />
+                    )}
+                </Button>
             </div>
             <CommentView 
                 commentId={comment}
