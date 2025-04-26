@@ -1,5 +1,6 @@
 FROM node:18-alpine as build
 
+ENV VITE_API_URL 'https://api.justcheckinghow.com'
 WORKDIR /app
 
 COPY package*.json ./

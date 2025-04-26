@@ -18,10 +18,10 @@ DO NOT include any characters that are not mentioned in the text.
 DO NOT add your judgement of the character's role, or their motivations.
 DO NOT write about what doesn't exist -- if there is no relationship between characters, don't mention.
 If given a list of characters from chapter chunks, combine them into consistent character summaries.
-Provide your response in the follwing format:
+When summarizing combined chapter chunks, make sure you correlate each information with the correct chapter.
+Provide your response in the following format:
 
-# Character
- ** Character Name **
+ ## ** Character Name **
  ...
  ** Character Description **
  ... 
@@ -38,16 +38,33 @@ Remember to describe the location in detail.
 DO NOT include any locations that are not mentioned in the text.
 DO NOT add your judgement of the location's role, or its importance or do not add details that are not mentioned in the text.
 If given a list of locations from chapter chunks, combine them into consistent location summaries.
+When summarizing combined chapter chunks, make sure you correlate each information with the correct chapter.
+Provide your response in the following format:
 
-Provide your response in the follwing format:
-
-# Location 
- ** Location Name **
+ ## ** Location Name **
  ...
  ** Location Description **
+ 
+ ## ** Location Name **
+ ...
+"""
 
-# Location 
- ** Location Name **
+TIMELINE_BUILDER_PROMPT = """
+You are an expert at storyboard writer. 
+You are given a chapter of a book. 
+
+Your task is to extract all the key events in the chapter.
+Remember to describe the event in detail. 
+DO NOT include any events that are not mentioned in the text.
+DO NOT add your judgement of the event's importance or do not add details that are not mentioned in the text.
+If given a list of events from chapter chunks, combine them into consistent event summaries.
+When summarizing combined chapter chunks, make sure you correlate each information with the correct chapter.
+Provide your response in the following format:
+
+ ## ** Event Name **
+ ** Chapter Number **
+ ...
+ ** Event Description **
  ...
 """
 
@@ -67,12 +84,18 @@ class StoryBoardBuilder:
                 instructions=LOCATION_EXTRACTOR_PROMPT,
                 model=self.model,
             ),
+            "timeline_builder": Agent(
+                "Timeline Builder",
+                instructions=TIMELINE_BUILDER_PROMPT,
+                model=self.model,
+            ),
         }
         self.runner = Runner()
-        self.book_chapters = []
-        self.character_summaries = {}
-        self.location_summaries = {}
-        self.relationship_data = {}
+
+    @track(name="timeline_builder")
+    async def _build_timeline(self, prompt: str):
+        response = await self.runner.run(self.agents["timeline_builder"], prompt)
+        return response.final_output
 
     @track(name="extract_chapter_characters")
     async def _extract_chapter_characters(self, prompt: str):
@@ -86,7 +109,11 @@ class StoryBoardBuilder:
         return response.final_output
 
     async def process_chapter(
-        self, chapter_text: str, chunk_size: int = 1000, overlap: int = 0
+        self,
+        chapter_number: int,
+        chapter_text: str,
+        chunk_size: int = 1000,
+        overlap: int = 0,
     ):
         """Process a chapter and extract key events"""
         chapter_chunked_data = []
@@ -96,32 +123,31 @@ class StoryBoardBuilder:
                 f"Processing chunk {chunk_id} of {len(chapter_text) // chunk_size}"
             )
             prompt = f"""
-            HERE IS THE CHAPTER:
+            CHUNK from chapter {chapter_number}:
             {chunk}
             """
             location_chapter_summary = await self._extract_chapter_locations(prompt)
             character_chapter_summary = await self._extract_chapter_characters(prompt)
-
+            timeline_chapter_summary = await self._build_timeline(prompt)
             chapter_chunked_data.append(
                 {
                     "location_chapter_summary": location_chapter_summary,
                     "character_chapter_summary": character_chapter_summary,
+                    "timeline_chapter_summary": timeline_chapter_summary,
                 }
             )
             chunk_id += 1
         combined_character_data = ""
         combined_location_data = ""
+        combined_timeline_data = ""
         for i, data_element in enumerate(chapter_chunked_data):
-            combined_character_data += (
-                f"Chapter {i+1}:\n{data_element['character_chapter_summary']}\n"
-            )
-            combined_location_data += (
-                f"Chapter {i+1}:\n{data_element['location_chapter_summary']}\n"
-            )
+            combined_character_data += f"{data_element['character_chapter_summary']}\n"
+            combined_location_data += f"{data_element['location_chapter_summary']}\n"
+            combined_timeline_data += f"{data_element['timeline_chapter_summary']}\n"
 
         logger.info("Synthesizing character and location summaries...")
         summary_character_prompt = f"""
-        HERE ARE THE CHAPTER CHUNKS:
+        HERE ARE THE CHAPTER {chapter_number} CHUNKS:
         {combined_character_data}
         """
         summary_character_data = await self._extract_chapter_characters(
@@ -129,16 +155,23 @@ class StoryBoardBuilder:
         )
 
         summary_location_prompt = f"""
-        HERE ARE THE CHAPTER CHUNKS:
+        HERE ARE THE CHAPTER {chapter_number} CHUNKS:
         {combined_location_data}
         """
         summary_location_data = await self._extract_chapter_locations(
             summary_location_prompt
         )
+
+        summary_timeline_prompt = f"""
+        HERE ARE THE CHAPTER {chapter_number} CHUNKS:
+        {combined_timeline_data}
+        """
+        summary_timeline_data = await self._build_timeline(summary_timeline_prompt)
         logger.info("Finished processing chapter...")
         return {
             "character_summaries": summary_character_data,
             "location_summaries": summary_location_data,
+            "timeline_summaries": summary_timeline_data,
         }
 
     @track(name="create_character_relationship_graph")

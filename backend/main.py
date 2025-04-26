@@ -1,4 +1,4 @@
-from fastapi import FastAPI, Request, WebSocket, WebSocketDisconnect
+from fastapi import FastAPI, Request, WebSocket, WebSocketDisconnect, Response
 from fastapi.middleware.cors import CORSMiddleware
 from writer_agents.style_inspector import StyleGuard
 from style_definer import StyleDefiner
@@ -6,6 +6,7 @@ from storyboarding.storyboard_builder import StoryBoardBuilder
 from pydantic import BaseModel
 from typing import Optional, List
 from loguru import logger
+from exports.word_export import markdown_to_docx_with_comments, MarkdownToWordRequest
 
 app = FastAPI()
 
@@ -17,6 +18,7 @@ class BookModel(BaseModel):
 
 
 class ChapterRequest(BaseModel):
+    chapter_number: int
     chapter_text: str
     chunk_size: int = 1000
     overlap: int = 0
@@ -25,7 +27,9 @@ class ChapterRequest(BaseModel):
 class Storyboard(BaseModel):
     character_summaries: str
     location_summaries: str
+    timeline_summaries: str
     character_relationship_graph: Optional[str] = None
+    chapter_number: Optional[int] = None
 
 
 class FinalStoryboardRequest(BaseModel):
@@ -40,6 +44,20 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
+
+@app.post("/api/markdown-to-docx-with-comments")
+async def markdown_to_docx_with_comments_endpoint(
+    request: MarkdownToWordRequest,
+):
+    docx_bytes = await markdown_to_docx_with_comments(request)
+    return Response(
+        content=docx_bytes,
+        media_type="application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+        headers={
+            "Content-Disposition": f"attachment; filename={request.filename}.docx"
+        },
+    )
 
 
 @app.get("/api/health")
@@ -61,19 +79,22 @@ async def storyboard(storyboard_request: FinalStoryboardRequest) -> Storyboard:
     storyboard_builder = StoryBoardBuilder()
     chapter_character_summaries = ""
     chapter_location_summaries = ""
-    for i, chapter_storyboard in enumerate(storyboard_request.chapter_storyboards):
-        chapter_character_summaries += (
-            f"Chapter {i+1}:\n{chapter_storyboard.character_summaries}\n"
-        )
-        chapter_location_summaries += (
-            f"Chapter {i+1}:\n{chapter_storyboard.location_summaries}\n"
-        )
+    chapter_timeline_summaries = ""
+    for chapter_storyboard in sorted(
+        storyboard_request.chapter_storyboards, key=lambda x: x.chapter_number
+    ):
+        chapter_character_summaries += f"Chapter {chapter_storyboard.chapter_number}:\n{chapter_storyboard.character_summaries}\n"
+        chapter_location_summaries += f"Chapter {chapter_storyboard.chapter_number}:\n{chapter_storyboard.location_summaries}\n"
+        chapter_timeline_summaries += f"Chapter {chapter_storyboard.chapter_number}:\n{chapter_storyboard.timeline_summaries}\n"
 
     character_summaries = await storyboard_builder._extract_chapter_characters(
         f"Here are the character summaries for the book. Combine them into a single summary: {chapter_character_summaries}"
     )
     location_summaries = await storyboard_builder._extract_chapter_locations(
         f"Here are the location summaries for the book. Combine them into a single summary: {chapter_location_summaries}"
+    )
+    timeline_summaries = await storyboard_builder._build_timeline(
+        f"Here are the timeline summaries for the book. Combine them into a single summary: {chapter_timeline_summaries}"
     )
     character_relationship_graph = (
         await storyboard_builder.create_character_relationship_graph(
@@ -84,6 +105,7 @@ async def storyboard(storyboard_request: FinalStoryboardRequest) -> Storyboard:
         "character_relationship_graph": character_relationship_graph,
         "character_summaries": character_summaries,
         "location_summaries": location_summaries,
+        "timeline_summaries": timeline_summaries,
     }
 
 
@@ -92,9 +114,10 @@ async def chapter_storyboard(chapter_request: ChapterRequest) -> Storyboard:
     """Returns a ChapterStoryboard object that contains the character summaries, location summaries, and character relationship graph for a chapter"""
     storyboard_builder = StoryBoardBuilder()
     chapter_loc_char_summaries = await storyboard_builder.process_chapter(
-        chapter_request.chapter_text,
-        chapter_request.chunk_size,
-        chapter_request.overlap,
+        chapter_number=chapter_request.chapter_number,
+        chapter_text=chapter_request.chapter_text,
+        chunk_size=chapter_request.chunk_size,
+        overlap=chapter_request.overlap,
     )
     character_relationship_graph = (
         await storyboard_builder.create_character_relationship_graph(
@@ -105,6 +128,8 @@ async def chapter_storyboard(chapter_request: ChapterRequest) -> Storyboard:
         "character_relationship_graph": character_relationship_graph,
         "character_summaries": chapter_loc_char_summaries["character_summaries"],
         "location_summaries": chapter_loc_char_summaries["location_summaries"],
+        "timeline_summaries": chapter_loc_char_summaries["timeline_summaries"],
+        "chapter_number": chapter_request.chapter_number,
     }
 
 

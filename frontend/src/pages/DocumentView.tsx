@@ -29,11 +29,6 @@ const DocumentView = () => {
     });
     const [comment, setComment] = useState('');
     const [activeTextSelection, setActiveTextSelection] = useState('');
-    const chart = `
-    graph TD
-        CygnusX14_ThirdMoon-->|setting|CygnusX14_ThirdMoon
-        UnchartedSector_Xylos-->|setting|UnchartedSector_Xylos
-    `;
     const [chapters, setChapters] = useState<Chapter[]>([
         {
             "title": "Example title",
@@ -47,6 +42,17 @@ const DocumentView = () => {
     ]);
     const [currentChapter, setCurrentChapter] = useState(0);
     const [isTextEditing, setIsTextEditing] = useState(false);
+    const [chart, __] = useState(`
+graph TD
+    Eva-->|mother|Anya
+    Anya-->|daughter|Eva
+    Eva-->|co-pilot|Jax
+    Jax-->|co-pilot|Eva
+    Eva-->|professional camaraderie|Unnamed
+    Unnamed-->|professional camaraderie|Eva
+`);
+
+    const [commentsDict, setApiCommentsDict] = useState({});
     const textContainerRef = useRef<HTMLDivElement>(null);
     const [commentsDict, setApiCommentsDict] = useState({});
     const [currentView, setCurrentView] = useState<'character_summary' | 'location_summary' | 'character_relationship_graph' | 'comments'>('comments');
