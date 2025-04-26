@@ -23,7 +23,8 @@ const Nav = ({
     chapterAnalyzeLoading,
     setChapterAnalyzeLoading,
     analyzeGrammar,
-    logicInspectChapters
+    logicInspectChapters,
+    analyzeText
 }: {
     chapters: Chapter[];
     handleAddnewChapter: () => void;
@@ -36,6 +37,7 @@ const Nav = ({
     setChapterAnalyzeLoading: (loading: boolean) => void;
     analyzeGrammar: (chapter: number) => void;
     logicInspectChapters: (chapter: number) => Promise<void>;
+    analyzeText: (chapter: number) => void;
 }) => {
     type ModalVisibleType = "characters" | "locations" | "character_relationship_graph" | "plot_points" | "timeline_summary" | null;
     const context = useContext(ModalContext) as ModalContextType | undefined;
@@ -97,12 +99,12 @@ const Nav = ({
               </li>
             </ul>
             <div style={{marginTop: "auto"}}>
-              {/* <div className="flex gap-2 mb-2">
-                <Button onClick={() => analyzeChapter(currentChapter)} disabled={chapterAnalyzeLoading}>
+              <div className="flex gap-2 mb-2">
+                <Button onClick={() => analyzeText(currentChapter)} disabled={chapterAnalyzeLoading}>
                     {chapterAnalyzeLoading && <Loader2 className="animate-spin" />}
-                    Analyze Chapter
+                    Analyze Style
                 </Button>
-              </div> */}
+              </div>
               <div className="flex gap-2 mb-2">
                 <Button onClick={() => logicInspectChapters(currentChapter)} disabled={chapterAnalyzeLoading}>
                     {chapterAnalyzeLoading && <Loader2 className="animate-spin" />}

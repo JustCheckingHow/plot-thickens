@@ -470,6 +470,7 @@ const DocumentView = () => {
                 setChapterAnalyzeLoading={setChapterAnalyzeLoading}
                 logicInspectChapters={logicInspectChapters}
                 analyzeGrammar={analyzeGrammar}
+                analyzeText={analyzeText}
             />
             <div className="content container">
                 <TextView
