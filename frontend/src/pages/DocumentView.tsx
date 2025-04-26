@@ -278,7 +278,8 @@ graph TD
 
         await logicInspect(JSON.stringify({
             character_summaries: character_summaries,
-            location_summaries: location_summaries
+            location_summaries: location_summaries,
+            text: chapters[currentChapter].text
         }));
     }
 
@@ -291,7 +292,7 @@ graph TD
                     <Button onClick={resetBook} variant="destructive">Clear book</Button>
                     <StylePopup updateStylePrompt={updateStylePrompt}/>
                     <Button onClick={summarizeBook}>Summarize</Button>
-                    <ExportPopup content={chapters.map(chapter => chapter.text).join('\n\n')}/>
+                    <ExportPopup content={chapters.map(chapter => "# " + chapter.title + "\n\n" + chapter.text).join('\n\n')}/>
                 </div>
             </div>
             

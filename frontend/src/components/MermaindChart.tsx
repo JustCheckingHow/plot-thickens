@@ -4,49 +4,50 @@ import mermaid from 'mermaid';
 
 const themeCSS = `
     g.classGroup rect {
-      fill: #282a36;
-      stroke: #6272a4;
+      fill: var(--color-surface);
+      stroke: var(--color-border);
     } 
     g.classGroup text {
-      fill: #f8f8f2;
+      fill: var(--color-primary);
     }
     g.classGroup line {
-      stroke: #f8f8f2;
+      stroke: var(--color-border);
       stroke-width: 0.5;
     }
     .classLabel .box {
-      stroke: #21222c;
+      stroke: var(--color-border);
       stroke-width: 3;
-      fill: #21222c;
+      fill: var(--color-surface);
       opacity: 1;
     }
     .classLabel .label {
-      fill: #f1fa8c;
+      fill: var(--color-accent);
     }
     .relation {
-      stroke: #ff79c6;
+      stroke: var(--color-secondary);
       stroke-width: 1;
     }
     #compositionStart, #compositionEnd {
-      fill: #bd93f9;
-      stroke: #bd93f9;
+      fill: var(--color-primary);
+      stroke: var(--color-primary);
       stroke-width: 1;
     }
     #aggregationEnd, #aggregationStart {
-      fill: #21222c;
-      stroke: #50fa7b;
+      fill: var(--color-accent);
+      stroke: var(--color-accent);
       stroke-width: 1;
     }
     #dependencyStart, #dependencyEnd {
-      fill: #00bcd4;
-      stroke: #00bcd4;
+      fill: var(--color-secondary);
+      stroke: var(--color-secondary);
       stroke-width: 1;
     } 
     #extensionStart, #extensionEnd {
-      fill: #f8f8f2;
-      stroke: #f8f8f2;
+      fill: var(--color-muted);
+      stroke: var(--color-muted);
       stroke-width: 1;
     }`
+
 
 interface MermaidChartProps {
   chart: string;
@@ -81,7 +82,7 @@ function MermaidRenderer({ diagramPromise, isPreview = false }: { diagramPromise
     <div 
       id={diagram.id} 
       dangerouslySetInnerHTML={{ __html: diagram.svg }} 
-      style={isPreview ? { transform: 'scale(0.7)', transformOrigin: 'top left' } : {}}
+      style={isPreview ? { transform: 'scale(1)', transformOrigin: 'center' } : {}}
     />
   );
 }
