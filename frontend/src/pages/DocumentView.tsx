@@ -266,6 +266,41 @@ const DocumentView = () => {
         })
     }
 
+    const refineChapter = async (chapterNumber: number) => {
+        setChapterAnalyzeLoading(true);
+
+        await axiosInstance.post('api/incremental-storyboard', {
+            chapter_text: chapters[chapterNumber].text,
+            chapter_number: chapters[chapterNumber].order,
+            previous_storyboards: chapters.slice(0, chapterNumber).map(chapter => ({
+                chapter_number: chapter.order,
+                character_summaries: chapter.character_summary,
+                location_summaries: chapter.location_summary,
+                character_relationship_graph: chapter.character_relationship_graph,
+                timeline_summaries: chapter.timeline_summary,
+                plotpoints_summaries: chapter.plotpoint_summary
+            }))
+        }).then((response) => {
+            setChapters(prev => {
+                const newChapters = [...prev];
+                newChapters[chapterNumber] = {
+                    ...newChapters[chapterNumber],
+                    character_summary: response.data.character_summaries,
+                    location_summary: response.data.location_summaries,
+                    character_relationship_graph: response.data.character_relationship_graph,
+                    timeline_summary: response.data.timeline_summaries,
+                    plotpoint_summary: response.data.plotpoints_summaries
+                };
+                return newChapters;
+            });
+            setChapterAnalyzeLoading(false);
+            toast.success('Chapter refined');
+        }).catch(() => {
+            setChapterAnalyzeLoading(false);
+            toast.error('Failed to refine chapter');
+        })
+    }
+
     const resetBook = () => {
         setChapters([dummyBook]);
         setCurrentChapter(0);
@@ -297,7 +332,7 @@ const DocumentView = () => {
         toast.success('Suggestion applied');
     }
     
-    const logicInspectChapters = async () => {
+    const logicInspectChapters = async (chapterNumber: number) => {
         if(isTextEditing){
             toast.error('Please finish editing before summarizing');
             return;
@@ -306,10 +341,11 @@ const DocumentView = () => {
         let character_summaries = "";
         let location_summaries = "";
 
-        for(let i = 0; i < chapters.length-1; i++){
+        for(let i = 0; i < chapterNumber; i++){
             if(chapters[i].character_summary == "" || chapters[i].location_summary == ""){
-                await analyzeChapter(i);
+                await refineChapter(i);
             }
+            console.log("Adding character summary", i);
             character_summaries += chapters[i].character_summary;
             location_summaries += chapters[i].location_summary;
         }
@@ -398,7 +434,7 @@ const DocumentView = () => {
 
                     {currentView === "location_summary" && <LocationSummary location_summary={chapters[currentChapter].location_summary}/>}
                     {currentView === "character_summary" && chapters[currentChapter].character_summary && <CharacterSummary character_summary={chapters[currentChapter].character_summary}/>}
-                    {currentView === "character_relationship_graph" && chapters[currentChapter].character_relationship_graph ? <MermaidChart chart={chapters[currentChapter].character_relationship_graph}/> : <div>Loading...</div>}
+                    {currentView === "character_relationship_graph" && chapters[currentChapter].character_relationship_graph ? <MermaidChart chart={chapters[currentChapter].character_relationship_graph}/> : <div></div>}
                     {currentView === "timeline_summary" && (
                         <div className="mt-4">
                             <h3 className="text-lg font-medium mb-2">Timeline Summary</h3>
@@ -423,7 +459,7 @@ const DocumentView = () => {
                         <div>
                             <div className="flex gap-2 justify-center">
                                 <Button onClick={() => analyzeText(currentChapter)}>Style text Analyze</Button>
-                                {currentChapter > 0 && <Button onClick={logicInspectChapters}>Logic inspect</Button>}
+                                {currentChapter > 0 && <Button onClick={() => logicInspectChapters(currentChapter)}>Logic inspect</Button>}
                             </div>
                             <div className="mt-4 p-3 bg-zinc-700 rounded-md">
                                 <h3 className="text-sm font-medium mb-1">Feedback:</h3>
@@ -437,13 +473,13 @@ const DocumentView = () => {
                             </div>
                         </div>
                     )}
-
+{/* 
                     <div className="flex justify-center mt-[auto] gap-4 items-center pt-6">
                         <Button onClick={() => analyzeChapter(currentChapter)} disabled={chapterAnalyzeLoading}>
                             {chapterAnalyzeLoading && <Loader2 className="animate-spin" />}
                             Analyze Chapter
                         </Button>
-                    </div>
+                    </div> */}
                 </div>
             </div>
         </div>
