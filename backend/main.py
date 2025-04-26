@@ -178,7 +178,11 @@ async def chapter_storyboard(chapter_request: ChapterRequest) -> Storyboard:
 
 @app.websocket("/api/style-guard")
 async def websocket_style_guard(websocket: WebSocket):
+    issues_found = False
+    
     async def send_comment(original_text, text_with_comments, suggestion):
+        nonlocal issues_found
+        issues_found = True
         await websocket.send_json(
             {
                 "original_text": original_text,
@@ -221,14 +225,16 @@ async def websocket_style_guard(websocket: WebSocket):
                 continue
 
             # Process the text
+            issues_found = False
             await style_guard.inspect_style(text)
 
             logger.info("Text processed.")
+            if not issues_found:
+                await websocket.send_json({"status": "no_issues_found"})
             await websocket.send_json({"status": "done"})
 
     except WebSocketDisconnect:
         pass
-
 
 @app.websocket("/api/logic-inspector")
 async def websocket_logic_inspector(websocket: WebSocket):
