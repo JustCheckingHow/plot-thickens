@@ -224,14 +224,14 @@ class StoryBoardBuilder:
         
         logger.info("Finished processing chapter...")
         return {
-            "character_summaries": summary_character_data,
-            "location_summaries": summary_location_data,
-            "timeline_summaries": summary_timeline_data,
-            "plotpoints_summaries": summary_plotpoints_data,
+            "character_summary": summary_character_data,
+            "location_summary": summary_location_data,
+            "timeline_summary": summary_timeline_data,
+            "plotpoint_summary": summary_plotpoints_data,
         }
 
     @track(name="create_character_relationship_graph")
-    async def create_character_relationship_graph(self, character_summaries: str):
+    async def create_character_relationship_graph(self, character_summary: str):
         """Create a Mermaid graph of relationships between characters from character summaries."""
         # Create a relationship extractor agent
         relationship_agent = Agent(
@@ -262,7 +262,7 @@ It's imperative that you output valid Mermaid syntax.
         # Prepare the prompt with character summaries
         prompt = f"""
 HERE ARE THE CHARACTER SUMMARIES:
-{character_summaries}
+{character_summary}
 
 Create a Mermaid relationship graph based on these summaries.
 """

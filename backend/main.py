@@ -12,6 +12,7 @@ from loguru import logger
 from exports.word_export import markdown_to_docx_with_comments, MarkdownToWordRequest
 from exports.word2mkdn import docx_to_markdown_chapters, pdf_to_markdown_chapters
 import tempfile
+from writer_agents.utils import get_comment_discussion
 
 import base64
 
@@ -23,7 +24,6 @@ class BookModel(BaseModel):
     book_title: str
     book_author: str = Optional[str]
 
-
 class ChapterRequest(BaseModel):
     chapter_number: int
     chapter_text: str
@@ -31,12 +31,12 @@ class ChapterRequest(BaseModel):
     overlap: int = 0
 
 class Storyboard(BaseModel):
-    character_summaries: str
-    location_summaries: str
-    timeline_summaries: str
+    character_summary: str
+    location_summary: str
+    timeline_summary: str
     character_relationship_graph: Optional[str] = None
     chapter_number: Optional[int] = None
-    plotpoints_summaries: str
+    plotpoint_summary: str
     
 class IncrementalStoryboardRequest(BaseModel):
     chapter_number: int
@@ -48,6 +48,14 @@ class IncrementalStoryboardRequest(BaseModel):
 class FinalStoryboardRequest(BaseModel):
     chapter_storyboards: List[Storyboard]
 
+class CommentDiscussionRequest(BaseModel):
+    chapter_number: int
+    chapter_text: str
+    comments: List[str]
+    current_storyboard: Storyboard
+
+class CommentDiscussionReply(BaseModel):
+    reply: str
 
 # Configure CORS
 app.add_middleware(
@@ -141,41 +149,41 @@ async def style_define(request: Request) -> str:
 async def storyboard(storyboard_request: FinalStoryboardRequest) -> Storyboard:
     """Returns a Storyboard object that contains the character summaries, location summaries, and character relationship graph for a book"""
     storyboard_builder = StoryBoardBuilder()
-    chapter_character_summaries = ""
-    chapter_location_summaries = ""
-    chapter_timeline_summaries = ""
-    chapter_plotpoints_summaries = ""
+    chapter_character_summary = ""
+    chapter_location_summary = ""
+    chapter_timeline_summary = ""
+    chapter_plotpoint_summary = ""
     for chapter_storyboard in sorted(
         storyboard_request.chapter_storyboards, key=lambda x: x.chapter_number
     ):
-        chapter_character_summaries += f"Chapter {chapter_storyboard.chapter_number}:\n{chapter_storyboard.character_summaries}\n"
-        chapter_location_summaries += f"Chapter {chapter_storyboard.chapter_number}:\n{chapter_storyboard.location_summaries}\n"
-        chapter_timeline_summaries += f"Chapter {chapter_storyboard.chapter_number}:\n{chapter_storyboard.timeline_summaries}\n"
-        chapter_plotpoints_summaries += f"Chapter {chapter_storyboard.chapter_number}:\n{chapter_storyboard.plotpoints_summaries}\n"
+        chapter_character_summary += f"Chapter {chapter_storyboard.chapter_number}:\n{chapter_storyboard.character_summary}\n"
+        chapter_location_summary += f"Chapter {chapter_storyboard.chapter_number}:\n{chapter_storyboard.location_summary}\n"
+        chapter_timeline_summary += f"Chapter {chapter_storyboard.chapter_number}:\n{chapter_storyboard.timeline_summary}\n"
+        chapter_plotpoint_summary += f"Chapter {chapter_storyboard.chapter_number}:\n{chapter_storyboard.plotpoint_summary}\n"
 
-    character_summaries = await storyboard_builder._extract_chapter_characters(
-        f"Here are the character summaries for the book. Combine them into a single summary: {chapter_character_summaries}"
+    character_summary = await storyboard_builder._extract_chapter_characters(
+        f"Here are the character summaries for the book. Combine them into a single summary: {chapter_character_summary}"
     )
-    location_summaries = await storyboard_builder._extract_chapter_locations(
-        f"Here are the location summaries for the book. Combine them into a single summary: {chapter_location_summaries}"
+    location_summary = await storyboard_builder._extract_chapter_locations(
+        f"Here are the location summaries for the book. Combine them into a single summary: {chapter_location_summary}"
     )
-    timeline_summaries = await storyboard_builder._build_timeline(
-        f"Here are the timeline summaries for the book. Combine them into a single summary: {chapter_timeline_summaries}"
+    timeline_summary = await storyboard_builder._build_timeline(
+        f"Here are the timeline summaries for the book. Combine them into a single summary: {chapter_timeline_summary}"
     )
-    plotpoints_summaries = await storyboard_builder._extract_chapter_plotpoints(
-        f"Here are the plotpoints summaries for the book. Combine them into a single summary: {chapter_plotpoints_summaries}"
+    plotpoint_summary = await storyboard_builder._extract_chapter_plotpoints(
+        f"Here are the plotpoints summaries for the book. Combine them into a single summary: {chapter_plotpoint_summary}"
     )
     character_relationship_graph = (
         await storyboard_builder.create_character_relationship_graph(
-            chapter_character_summaries
+            chapter_character_summary
         )
     )
     return {
         "character_relationship_graph": character_relationship_graph,
-        "character_summaries": character_summaries,
-        "location_summaries": location_summaries,
-        "timeline_summaries": timeline_summaries,
-        "plotpoints_summaries": plotpoints_summaries,
+        "character_summary": character_summary,
+        "location_summary": location_summary,
+        "timeline_summary": timeline_summary,
+        "plotpoint_summary": plotpoint_summary,
     }
 
 
@@ -191,15 +199,15 @@ async def chapter_storyboard(chapter_request: ChapterRequest) -> Storyboard:
     )
     character_relationship_graph = (
         await storyboard_builder.create_character_relationship_graph(
-            chapter_loc_char_summaries["character_summaries"]
+            chapter_loc_char_summaries["character_summary"]
         )
     )
     return {
         "character_relationship_graph": character_relationship_graph,
-        "character_summaries": chapter_loc_char_summaries["character_summaries"],
-        "location_summaries": chapter_loc_char_summaries["location_summaries"],
-        "timeline_summaries": chapter_loc_char_summaries["timeline_summaries"],
-        "plotpoints_summaries": chapter_loc_char_summaries["plotpoints_summaries"],
+        "character_summary": chapter_loc_char_summaries["character_summary"],
+        "location_summary": chapter_loc_char_summaries["location_summary"],
+        "timeline_summary": chapter_loc_char_summaries["timeline_summary"],
+        "plotpoint_summary": chapter_loc_char_summaries["plotpoint_summary"],
         "chapter_number": chapter_request.chapter_number,
     }
 
@@ -207,44 +215,48 @@ async def chapter_storyboard(chapter_request: ChapterRequest) -> Storyboard:
 async def incremental_storyboard(chapter_request: IncrementalStoryboardRequest) -> Storyboard:
     """Returns a ChapterStoryboard object that contains the character summaries, location summaries, and character relationship graph for a chapter"""
     storyboard_builder = StoryBoardBuilder()
-    chapter_character_summaries = ""
-    chapter_location_summaries = ""
-    chapter_timeline_summaries = ""
-    chapter_plotpoints_summaries = ""
+    chapter_character_summary = ""
+    chapter_location_summary = ""
+    chapter_timeline_summary = ""
+    chapter_plotpoint_summary = ""
     
     for chapter_storyboard in sorted(
         chapter_request.previous_storyboards, key=lambda x: x.chapter_number
     ):
-        chapter_character_summaries += f"Chapter {chapter_storyboard.chapter_number}:\n{chapter_storyboard.character_summaries}\n"
-        chapter_location_summaries += f"Chapter {chapter_storyboard.chapter_number}:\n{chapter_storyboard.location_summaries}\n"
-        chapter_timeline_summaries += f"Chapter {chapter_storyboard.chapter_number}:\n{chapter_storyboard.timeline_summaries}\n"
-        chapter_plotpoints_summaries += f"Chapter {chapter_storyboard.chapter_number}:\n{chapter_storyboard.plotpoints_summaries}\n"
+        chapter_character_summary += f"Chapter {chapter_storyboard.chapter_number}:\n{chapter_storyboard.character_summary}\n"
+        chapter_location_summary += f"Chapter {chapter_storyboard.chapter_number}:\n{chapter_storyboard.location_summary}\n"
+        chapter_timeline_summary += f"Chapter {chapter_storyboard.chapter_number}:\n{chapter_storyboard.timeline_summary}\n"
+        chapter_plotpoint_summary += f"Chapter {chapter_storyboard.chapter_number}:\n{chapter_storyboard.plotpoint_summary}\n"
         
-    character_summaries = await storyboard_builder._extract_chapter_characters(
-        f"Here are the character summaries for the book: ```{chapter_character_summaries}```\n This is the new chapter text: ```{chapter_request.chapter_text}```\n Combine the previous character summaries with the new chapter text to create a new character summary for the chapter."
+    character_summary = await storyboard_builder._extract_chapter_characters(
+        f"Here are the character summaries for the book: ```{chapter_character_summary}```\n This is the new chapter text: ```{chapter_request.chapter_text}```\n Combine the previous character summaries with the new chapter text to create a new character summary for the chapter."
     )
-    location_summaries = await storyboard_builder._extract_chapter_locations(
-        f"Here are the location summaries for the book: ```{chapter_location_summaries}```\n This is the new chapter text: ```{chapter_request.chapter_text}```\n Combine the previous location summaries with the new chapter text to create a new location summary for the chapter."
+    location_summary = await storyboard_builder._extract_chapter_locations(
+        f"Here are the location summaries for the book: ```{chapter_location_summary}```\n This is the new chapter text: ```{chapter_request.chapter_text}```\n Combine the previous location summaries with the new chapter text to create a new location summary for the chapter."
     )
-    timeline_summaries = await storyboard_builder._build_timeline(
-        f"Here are the timeline summaries for the book: ```{chapter_timeline_summaries}```\n This is the new chapter text: ```{chapter_request.chapter_text}```\n Combine the previous timeline summaries with the new chapter text to create a new timeline summary for the chapter."
+    timeline_summary = await storyboard_builder._build_timeline(
+        f"Here are the timeline summaries for the book: ```{chapter_timeline_summary}```\n This is the new chapter text: ```{chapter_request.chapter_text}```\n Combine the previous timeline summaries with the new chapter text to create a new timeline summary for the chapter."
     )
-    plotpoints_summaries = await storyboard_builder._extract_chapter_plotpoints(
-        f"Here are the plotpoints summaries for the book: ```{chapter_plotpoints_summaries}```\n This is the new chapter text: ```{chapter_request.chapter_text}```\n Combine the previous plotpoints summaries with the new chapter text to create a new plotpoints summary for the chapter."
+    plotpoint_summary = await storyboard_builder._extract_chapter_plotpoints(
+        f"Here are the plotpoints summaries for the book: ```{chapter_plotpoint_summary}```\n This is the new chapter text: ```{chapter_request.chapter_text}```\n Combine the previous plotpoints summaries with the new chapter text to create a new plotpoints summary for the chapter."
     )
     character_relationship_graph = (
         await storyboard_builder.create_character_relationship_graph(
-            chapter_character_summaries + f"\n\nThis is the new chapter text: ```{chapter_request.chapter_text}```\n"
+            chapter_character_summary + f"\n\nThis is the new chapter text: ```{chapter_request.chapter_text}```\n"
         )
     )
     return {
         "character_relationship_graph": character_relationship_graph,
-        "character_summaries": character_summaries,
-        "location_summaries": location_summaries,
-        "timeline_summaries": timeline_summaries,
-        "plotpoints_summaries": plotpoints_summaries,
+        "character_summary": character_summary,
+        "location_summary": location_summary,
+        "timeline_summary": timeline_summary,
+        "plotpoint_summary": plotpoint_summary,
     }
     
+@app.post("/api/comment-discussion")
+async def comment_discussion(comment_discussion_request: CommentDiscussionRequest) -> CommentDiscussionReply:
+    """Returns a CommentDiscussion object that contains the comment discussion for a chapter"""
+    return {"reply": await get_comment_discussion(comment_discussion_request.comments, comment_discussion_request.current_storyboard)}
 
 @app.websocket("/api/style-guard")
 async def websocket_style_guard(websocket: WebSocket):
@@ -390,13 +402,13 @@ async def websocket_logic_inspector(websocket: WebSocket):
             data = await websocket.receive_json()
 
             # Check if style_prompt is provided in this message
-            if "character_summaries" in data and "location_summaries" in data:
+            if "character_summary" in data and "location_summary" in data:
                 # Update style prompt and recreate StyleGuard instance
-                character_summaries = data.get("character_summaries", "")
-                location_summaries = data.get("location_summaries", "")
+                character_summary = data.get("character_summary", "")
+                location_summary = data.get("location_summary", "")
                 logic_inspector = LogicInspector(
-                    character_summaries=character_summaries,
-                    location_summaries=location_summaries,
+                    character_summary=character_summary,
+                    location_summary=location_summary,
                     callback=send_comment,
                 )
 
@@ -404,7 +416,7 @@ async def websocket_logic_inspector(websocket: WebSocket):
             text = data.get("text", "")
 
             if not text:
-                if "character_summaries" in data and "location_summaries" in data:
+                if "character_summary" in data and "location_summary" in data:
                     await websocket.send_json({"status": "logic_inspector_initialized"})
                     continue
                 else:

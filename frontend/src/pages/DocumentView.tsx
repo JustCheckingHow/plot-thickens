@@ -22,6 +22,7 @@ import { MD5 } from "@/lib/utils";
 import ExportPopup from "@/components/ExportPopup/ExportPopup";
 import MarkdownRenderer from "@/components/MarkdownRenderer";
 import { useLocation } from "react-router-dom";
+import CommentView from "@/components/CommentView/CommentView";
 
 const DocumentView = () => {
     const { state } = useLocation();
@@ -55,6 +56,7 @@ const DocumentView = () => {
     const [chapterAnalyzeLoading, setChapterAnalyzeLoading] = useState(false);
 
     const textContainerRef = useRef<HTMLDivElement>(null);
+    const pendingSubcommentsRef = useRef<Record<string, Set<string>>>({});
     const [currentView, setCurrentView] = useState<'character_summary' | 'location_summary' | 'character_relationship_graph' | 'timeline_summary' | 'comments' | 'plotpoint_summary'>('comments');
 
     useEffect(() => {
@@ -303,11 +305,11 @@ const DocumentView = () => {
                 const newChapters = [...prev];
                 newChapters[chapterNumber] = {
                     ...newChapters[chapterNumber],
-                    character_summary: response.data.character_summaries,
-                    location_summary: response.data.location_summaries,
+                    character_summary: response.data.character_summary,
+                    location_summary: response.data.location_summary,
                     character_relationship_graph: response.data.character_relationship_graph,
-                    timeline_summary: response.data.timeline_summaries,
-                    plotpoint_summary: response.data.plotpoints_summaries
+                    timeline_summary: response.data.timeline_summary,
+                    plotpoint_summary: response.data.plotpoint_summary
                 };
                 return newChapters;
             });
@@ -328,19 +330,19 @@ const DocumentView = () => {
             chapter_number: chapters[chapterNumber].order,
             previous_storyboards: chapters.slice(0, chapterNumber).map(chapter => ({
                 chapter_number: chapter.order,
-                character_summaries: chapter.character_summary,
-                location_summaries: chapter.location_summary,
+                character_summary: chapter.character_summary,
+                location_summary: chapter.location_summary,
                 character_relationship_graph: chapter.character_relationship_graph,
-                timeline_summaries: chapter.timeline_summary,
-                plotpoints_summaries: chapter.plotpoint_summary
+                timeline_summary: chapter.timeline_summary,
+                plotpoint_summary: chapter.plotpoint_summary
             }))
         }).then((response) => {
             const newChapterResponse: Chapter = {
-                character_summary: response.data.character_summaries,
-                location_summary: response.data.location_summaries,
+                character_summary: response.data.character_summary,
+                location_summary: response.data.location_summary,
                 character_relationship_graph: response.data.character_relationship_graph,
-                timeline_summary: response.data.timeline_summaries,
-                plotpoint_summary: response.data.plotpoints_summaries,
+                timeline_summary: response.data.timeline_summary,
+                plotpoint_summary: response.data.plotpoint_summary,
                 text: chapters[chapterNumber].text,
                 title: chapters[chapterNumber].title,
                 order: chapters[chapterNumber].order,
@@ -403,8 +405,8 @@ const DocumentView = () => {
             return;
         }
 
-        let character_summaries = "";
-        let location_summaries = "";
+        let character_summary = "";
+        let location_summary = "";
 
         for(let i = 0; i < chapterNumber; i++){
             let response: Chapter = chapters[i];
@@ -412,8 +414,8 @@ const DocumentView = () => {
                 response = await refineChapter(i);
             }
             console.log("Adding character summary", response);
-            character_summaries += response.character_summary;
-            location_summaries += response.location_summary;
+            character_summary += response.character_summary;
+            location_summary += response.location_summary;
         }
 
         if (chapters[chapterNumber].character_summary == "" || chapters[chapterNumber].location_summary == ""){
@@ -421,11 +423,151 @@ const DocumentView = () => {
         }
 
         await logicInspect(JSON.stringify({
-            character_summaries: character_summaries,
-            location_summaries: location_summaries,
+            character_summary: character_summary,
+            location_summary: location_summary,
             text: chapters[chapterNumber].text
         }));
     }
+
+    const addSubcomment = (commentId: string, subcommentText: string) => {
+        // --- Check and set pending ref ---
+        if (!pendingSubcommentsRef.current[commentId]) {
+            pendingSubcommentsRef.current[commentId] = new Set();
+        }
+        if (pendingSubcommentsRef.current[commentId].has(subcommentText)) {
+            console.log("Subcomment addition already in progress:", commentId, subcommentText);
+            return; // Already processing this exact subcomment
+        }
+        // Mark as pending
+        pendingSubcommentsRef.current[commentId].add(subcommentText);
+        // --- End ref check ---
+
+        // Get current comments from the latest state (needed for API call)
+        const currentComments = chapters[currentChapter].comments;
+        const existingSubcomments = currentComments[commentId + '_subcomments'] || '';
+
+        // Check if the subcomment *already exists in the state* (handles cases where it was added previously)
+        const subcommentExistsInState = existingSubcomments
+            .split('|||')
+            .some(entry => {
+                const [, text] = entry.split(':');
+                return text === subcommentText;
+            });
+
+        if (subcommentExistsInState) {
+            console.warn("Attempted to add duplicate subcomment (already in state).");
+            // Clean up the pending flag as we are aborting
+            pendingSubcommentsRef.current[commentId]?.delete(subcommentText);
+            return;
+        }
+
+        try {
+            // Create a unique ID for the subcomment
+            const subcommentId = `${commentId}_sub_${Date.now()}`;
+
+            // --- Add user's subcomment to state immediately ---
+            const updatedSubcommentsWithUser = existingSubcomments
+                ? `${existingSubcomments}|||${subcommentId}:${subcommentText}`
+                : `${subcommentId}:${subcommentText}`;
+
+            setChapters(prev => {
+                const newChapters = [...prev];
+                // Ensure chapter exists (safety check)
+                if (!newChapters[currentChapter]) return prev;
+                 newChapters[currentChapter] = {
+                    ...newChapters[currentChapter],
+                    comments: {
+                        ...newChapters[currentChapter].comments,
+                        [commentId + '_subcomments']: updatedSubcommentsWithUser
+                    }
+                };
+                return newChapters;
+            });
+            // --- End immediate user subcomment update ---
+
+            // Prepare data for API call (include the user's new comment)
+            const commentsAndSubcommentsForAPI = [
+                currentComments[commentId], // Original comment text
+                ...parseSubcomments(updatedSubcommentsWithUser) // Use the string *with* the user's new comment
+                    .map(subcomment => subcomment.text)
+            ];
+
+            // Now make the API call
+            axiosInstance.post('api/comment-discussion', {
+                chapter_number: currentChapter,
+                chapter_text: chapters[currentChapter].text, // Send the current text
+                comments: commentsAndSubcommentsForAPI,
+                current_storyboard: chapters[currentChapter] // Consider if this needs to be fresher state
+            }).then((response) => {
+                // If AI provides a reply, update the state again to add it
+                if (response.data.reply) {
+                    setChapters(prev => {
+                        const newChapters = [...prev];
+                         // Ensure chapter exists (safety check)
+                        if (!newChapters[currentChapter]) return prev;
+
+                        // Get the latest subcomments string from the potentially updated state
+                        const currentSubcommentsInState = newChapters[currentChapter].comments[commentId + '_subcomments'] || '';
+                        const aiSubcommentId = `${commentId}_ai_${Date.now()}`;
+                        const finalSubcommentsWithAI = `${currentSubcommentsInState}|||${aiSubcommentId}:${response.data.reply}`;
+
+                        // Check if the AI's reply is not identical to the previous comment
+                        const subcomments = parseSubcomments(currentSubcommentsInState);
+                        const lastSubcomment = subcomments[subcomments.length - 1];
+                        
+                        // If the last comment is identical to the AI reply, don't add it
+                        if (lastSubcomment && lastSubcomment.text === response.data.reply) {
+                            // Skip adding duplicate AI reply
+                            return newChapters;
+                        }
+
+                        newChapters[currentChapter].comments = {
+                            ...newChapters[currentChapter].comments,
+                            [commentId + '_subcomments']: finalSubcommentsWithAI
+                        };
+
+                        return newChapters;
+                    });
+                }
+            }).catch(error => {
+                console.error("Error fetching AI reply:", error);
+                toast.error("Failed to get AI reply for the comment.");
+                // Consider reverting the user's comment add here if the API call fails critically
+                // For now, we leave the user's comment added.
+            }).finally(() => {
+                 // --- Clean up pending ref after API call attempt (success or fail) ---
+                 pendingSubcommentsRef.current[commentId]?.delete(subcommentText);
+                 if (pendingSubcommentsRef.current[commentId]?.size === 0) {
+                     delete pendingSubcommentsRef.current[commentId];
+                 }
+                 // --- End ref cleanup ---
+            });
+        } catch (error) {
+             // Catch synchronous errors during the setup/state update
+             console.error("Error during subcomment addition setup:", error);
+             toast.error("Failed to add subcomment.");
+              // --- Clean up pending ref in case of synchronous error ---
+             pendingSubcommentsRef.current[commentId]?.delete(subcommentText);
+             if (pendingSubcommentsRef.current[commentId]?.size === 0) {
+                 delete pendingSubcommentsRef.current[commentId];
+             }
+            // --- End ref cleanup ---
+        }
+    };
+
+    const parseSubcomments = (subcommentsString?: string) => {
+        if (!subcommentsString) return [];
+
+        return subcommentsString.split('|||').map(subcomment => {
+            const [id, text] = subcomment.split(':');
+            // Basic check for valid format
+            if (id === undefined || text === undefined) {
+                console.warn("Malformed subcomment entry:", subcomment);
+                return null; // Or handle differently
+            }
+            return { id, text };
+        }).filter(Boolean) as { id: string; text: string }[]; // Filter out nulls and assert type
+    };
 
     return (
         <div>
@@ -537,30 +679,30 @@ const DocumentView = () => {
                                     {chapterAnalyzeLoading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
                                     Style text Analyze
                                 </Button>
-                                {<Button onClick={() => logicInspectChapters(currentChapter)} disabled={chapterAnalyzeLoading}>
+                                
+                                <Button onClick={() => logicInspectChapters(currentChapter)} disabled={chapterAnalyzeLoading}>
                                     {chapterAnalyzeLoading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
                                     Logic inspect
-                                </Button>}
+                                </Button>
                             </div>
-                            <div className="mt-4 p-3 bg-zinc-700 rounded-md">
-                                <h3 className="text-sm font-medium mb-1">Feedback:</h3>
-                                {activeTextSelection && (
-                                    <div className="text-xs italic bg-zinc-600 p-2 mb-2 rounded">
-                                        "{activeTextSelection}"
-                                    </div>
-                                )}
-                                <p className="text-sm">{chapters[currentChapter].comments[comment] || "Click on marked text to view comments"}</p>
-                                <p className="text-sm italic">{chapters[currentChapter].comments[comment + '_suggestion'] || ""} <Button onClick={() => applySuggestion(comment)}>Zastosuj</Button></p>
-                            </div>
+                            
+                            {comment ? (
+                                <CommentView
+                                    commentId={comment}
+                                    commentText={chapters[currentChapter].comments[comment] || ""}
+                                    suggestion={chapters[currentChapter].comments[comment + '_suggestion'] || ""}
+                                    selectedText={activeTextSelection}
+                                    onApplySuggestion={applySuggestion}
+                                    onAddSubcomment={addSubcomment}
+                                    subcomments={parseSubcomments(chapters[currentChapter].comments[comment + '_subcomments'])}
+                                />
+                            ) : (
+                                <div className="mt-4 p-3 bg-zinc-700 rounded-md">
+                                    <p className="text-sm">Click on marked text to view comments</p>
+                                </div>
+                            )}
                         </div>
                     )}
-{/* 
-                    <div className="flex justify-center mt-[auto] gap-4 items-center pt-6">
-                        <Button onClick={() => analyzeChapter(currentChapter)} disabled={chapterAnalyzeLoading}>
-                            {chapterAnalyzeLoading && <Loader2 className="animate-spin" />}
-                            Analyze Chapter
-                        </Button>
-                    </div> */}
                 </div>
             </div>
         </div>
