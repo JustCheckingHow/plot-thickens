@@ -1,4 +1,4 @@
-from fastapi import FastAPI, Request, WebSocket, WebSocketDisconnect
+from fastapi import FastAPI, Request, WebSocket, WebSocketDisconnect, Response
 from fastapi.middleware.cors import CORSMiddleware
 from writer_agents.style_inspector import StyleGuard
 from style_definer import StyleDefiner
@@ -6,6 +6,7 @@ from storyboarding.storyboard_builder import StoryBoardBuilder
 from pydantic import BaseModel
 from typing import Optional, List
 from loguru import logger
+from exports.word_export import markdown_to_docx_with_comments, MarkdownToWordRequest
 
 app = FastAPI()
 
@@ -40,6 +41,18 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
+
+@app.post("/api/markdown-to-docx-with-comments")
+async def markdown_to_docx_with_comments_endpoint(
+    request: MarkdownToWordRequest,
+):
+    docx_bytes = await markdown_to_docx_with_comments(request)
+    return Response(
+        content=docx_bytes,
+        media_type="application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+        headers={"Content-Disposition": f"attachment; filename={request.filename}.docx"}
+    )
 
 
 @app.get("/api/health")
