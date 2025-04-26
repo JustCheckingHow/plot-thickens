@@ -11,7 +11,7 @@ COPY . .
 
 RUN npm run build
 
-FROM nginx:18
+FROM nginx
 
 COPY --from=build /app/dist /usr/share/nginx/html
 
