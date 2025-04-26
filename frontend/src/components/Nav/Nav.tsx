@@ -92,9 +92,9 @@ const Nav = ({
             </ul>
             <div style={{marginTop: "auto"}}>
               <div className="flex gap-2 mb-2">
-                <Button onClick={() => {
+                <Button onClick={async() => {
                   setLoading("style");
-                  analyzeText(currentChapter);
+                  await analyzeText(currentChapter);
                   setLoading(null);
                 }} disabled={loading === "style"}>
                     {loading === "style" && <Loader2 className="animate-spin" />}
@@ -102,9 +102,9 @@ const Nav = ({
                 </Button>
               </div>
               <div className="flex gap-2 mb-2">
-                <Button onClick={() => {
+                <Button onClick={async() => {
                   setLoading("logic");
-                  logicInspectChapters(currentChapter);
+                  await logicInspectChapters(currentChapter);
                   setLoading(null);
                 }} disabled={loading === "logic"}>
                     {loading === "logic" && <Loader2 className="animate-spin" />}
@@ -112,9 +112,9 @@ const Nav = ({
                 </Button>
               </div>
               <div className="flex gap-2 mb-2">
-                <Button onClick={() => {
+                <Button onClick={async () => {
                   setLoading("grammy");
-                  analyzeGrammar(currentChapter);
+                  await analyzeGrammar(currentChapter);
                   setLoading(null);
                 }} disabled={loading === "grammy"}>
                     {loading === "grammy" && <Loader2 className="animate-spin" />}
