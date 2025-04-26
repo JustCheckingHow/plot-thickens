@@ -50,7 +50,7 @@ export function StylePopup({updateStylePrompt}: {updateStylePrompt: (style: stri
       formData.append('file', selectedFile);
       
       // Upload file to API - ensure content type is not set (let browser set it)
-      const response = await axiosInstance.post(API_URL + '/api/docx-to-style', formData, {
+      const response = await axiosInstance.post(API_URL + '/api/doc-to-style', formData, {
         headers: {
           'Content-Type': 'multipart/form-data',
         },

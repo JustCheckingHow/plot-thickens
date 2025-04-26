@@ -5,6 +5,7 @@ from chunking_utils import chunk_text
 from loguru import logger
 from opik import track
 import os
+import asyncio
 
 CHARACTER_EXTRACTOR_PROMPT = """
 You are an expert at storyboard writer. 
@@ -153,27 +154,36 @@ class StoryBoardBuilder:
         """Process a chapter and extract key events"""
         chapter_chunked_data = []
         chunk_id = 0
+        # Create tasks for all chunks
+        tasks = []
         for chunk in chunk_text(chapter_text, chunk_size, overlap):
             logger.info(
-                f"Processing chunk {chunk_id} of {len(chapter_text) // chunk_size}"
+                f"Preparing chunk {chunk_id} of {len(chapter_text) // chunk_size}"
             )
             prompt = f"""
             CHUNK from chapter {chapter_number}:
             {chunk}
             """
-            location_chapter_summary = await self._extract_chapter_locations(prompt)
-            character_chapter_summary = await self._extract_chapter_characters(prompt)
-            timeline_chapter_summary = await self._build_timeline(prompt)
-            plotpoints_chapter_summary = await self._extract_chapter_plotpoints(prompt)
+            # Create tasks for each extraction type
+            tasks.append(self._extract_chapter_locations(prompt))
+            tasks.append(self._extract_chapter_characters(prompt))
+            tasks.append(self._build_timeline(prompt))
+            tasks.append(self._extract_chapter_plotpoints(prompt))
+            chunk_id += 1
+        
+        # Gather all results
+        results = await asyncio.gather(*tasks)
+        
+        # Process results into chapter_chunked_data
+        for i in range(0, len(results), 4):
             chapter_chunked_data.append(
                 {
-                    "location_chapter_summary": location_chapter_summary,
-                    "character_chapter_summary": character_chapter_summary,
-                    "timeline_chapter_summary": timeline_chapter_summary,
-                    "plotpoints_chapter_summary": plotpoints_chapter_summary,
+                    "location_chapter_summary": results[i],
+                    "character_chapter_summary": results[i+1],
+                    "timeline_chapter_summary": results[i+2],
+                    "plotpoints_chapter_summary": results[i+3],
                 }
             )
-            chunk_id += 1
         combined_character_data = ""
         combined_location_data = ""
         combined_timeline_data = ""
