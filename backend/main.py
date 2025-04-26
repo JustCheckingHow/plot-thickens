@@ -322,8 +322,9 @@ async def websocket_grammar_inspector(websocket: WebSocket):
                     "suggestion": suggestion,
                 }
             )
-        except RuntimeError:
+        except RuntimeError as e:
             # Connection already closed
+            logger.info(f"Connection already closed: {e}")
             pass
         return text_with_comments
 
@@ -353,8 +354,9 @@ async def websocket_grammar_inspector(websocket: WebSocket):
                 if not issues_found:
                     await websocket.send_json({"status": "no_issues_found"})
                 await websocket.send_json({"status": "done"})
-            except RuntimeError:
+            except RuntimeError as e:
                 # Connection already closed
+                logger.info(f"Connection already closed: {e}")
                 break
 
     except WebSocketDisconnect:

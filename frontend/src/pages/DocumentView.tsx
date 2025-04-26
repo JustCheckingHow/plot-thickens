@@ -90,7 +90,7 @@ const DocumentView = () => {
         if (data && data.original_text) {
             const { original_text, comment } = data;
             const hash8byte = MD5(original_text).slice(0, 8);
-            toast.success("New comment added");
+            toast.success(comment);
             setChapters(prevChapters => {
                 const newChapters = [...prevChapters];
                 newChapters[currentChapter] = {
@@ -109,6 +109,7 @@ const DocumentView = () => {
             });
         }
     }, [grammarInspectLastMessage])
+    
 
     useEffect(() => {
         if (!logicInspectLastMessage) return;
@@ -135,6 +136,7 @@ const DocumentView = () => {
             });
         }
     }, [logicInspectLastMessage])
+    
 
     useEffect(() => {
         if (!lastMessage) return;
