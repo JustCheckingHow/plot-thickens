@@ -1,5 +1,5 @@
 FROM node:18-alpine
-ENV VITE_API_URL 'http://api.justcheckinghow.com'
+ENV VITE_API_URL 'https://api.justcheckinghow.com'
 WORKDIR /app
 
 RUN cd /app
