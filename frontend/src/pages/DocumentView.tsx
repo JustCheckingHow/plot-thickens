@@ -20,7 +20,7 @@ const DocumentView = () => {
     });
     const [comment, setComment] = useState('');
     const [activeTextSelection, setActiveTextSelection] = useState('');
-    const chart = `
+    const [chart, __] = useState(`
 graph TD
     Eva-->|mother|Anya
     Anya-->|daughter|Eva
@@ -28,7 +28,7 @@ graph TD
     Jax-->|co-pilot|Eva
     Eva-->|professional camaraderie|Unnamed
     Unnamed-->|professional camaraderie|Eva
-`;
+`);
 
     const [commentsDict, setApiCommentsDict] = useState({});
     const textContainerRef = useRef<HTMLDivElement>(null);
@@ -46,8 +46,8 @@ graph TD
                 ...commentsDict,
                 [hash8byte]: comment
             });
-            setText(prevText => prevText.replaceAll(
-                original_text,
+            setText(prevText => prevText.replace(
+                new RegExp(original_text.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'), 'g'),
                 `<comment id=${hash8byte} comment="${comment}">${original_text}</comment>`
             ));
         }
