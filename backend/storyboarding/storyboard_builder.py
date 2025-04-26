@@ -109,25 +109,32 @@ class StoryBoardBuilder:
                 }
             )
             chunk_id += 1
-        combined_character_data = [
-            d["character_chapter_summary"] for d in chapter_chunked_data
-        ]
-        combined_location_data = [
-            d["location_chapter_summary"] for d in chapter_chunked_data
-        ]
+        combined_character_data = ""
+        combined_location_data = ""
+        for i, data_element in enumerate(chapter_chunked_data):
+            combined_character_data += (
+                f"Chapter {i+1}:\n{data_element['character_chapter_summary']}\n"
+            )
+            combined_location_data += (
+                f"Chapter {i+1}:\n{data_element['location_chapter_summary']}\n"
+            )
 
         logger.info("Synthesizing character and location summaries...")
-        summary_prompt = f"""
+        summary_character_prompt = f"""
         HERE ARE THE CHAPTER CHUNKS:
         {combined_character_data}
         """
-        summary_character_data = await self._extract_chapter_locations(summary_prompt)
+        summary_character_data = await self._extract_chapter_characters(
+            summary_character_prompt
+        )
 
-        summary_prompt = f"""
+        summary_location_prompt = f"""
         HERE ARE THE CHAPTER CHUNKS:
         {combined_location_data}
         """
-        summary_location_data = await self._extract_chapter_characters(summary_prompt)
+        summary_location_data = await self._extract_chapter_locations(
+            summary_location_prompt
+        )
         logger.info("Finished processing chapter...")
         return {
             "character_summaries": summary_character_data,
@@ -174,4 +181,7 @@ Create a Mermaid relationship graph based on these summaries.
         response = await self.runner.run(relationship_agent, prompt)
 
         # Extract the Mermaid graph from the response
-        return response.final_output
+        resp = response.final_output
+        # remove the ```mermaid and ``` from the response
+        resp = resp.replace("```mermaid", "").replace("```", "")
+        return resp

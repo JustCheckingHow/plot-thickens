@@ -59,14 +59,15 @@ async def style_define(request: Request) -> str:
 async def storyboard(storyboard_request: FinalStoryboardRequest) -> Storyboard:
     """Returns a Storyboard object that contains the character summaries, location summaries, and character relationship graph for a book"""
     storyboard_builder = StoryBoardBuilder()
-    chapter_character_summaries = [
-        chapter_storyboard.character_summaries
-        for chapter_storyboard in storyboard_request.chapter_storyboards
-    ]
-    chapter_location_summaries = [
-        chapter_storyboard.location_summaries
-        for chapter_storyboard in storyboard_request.chapter_storyboards
-    ]
+    chapter_character_summaries = ""
+    chapter_location_summaries = ""
+    for i, chapter_storyboard in enumerate(storyboard_request.chapter_storyboards):
+        chapter_character_summaries += (
+            f"Chapter {i+1}:\n{chapter_storyboard.character_summaries}\n"
+        )
+        chapter_location_summaries += (
+            f"Chapter {i+1}:\n{chapter_storyboard.location_summaries}\n"
+        )
 
     character_summaries = await storyboard_builder._extract_chapter_characters(
         f"Here are the character summaries for the book. Combine them into a single summary: {chapter_character_summaries}"
@@ -76,7 +77,7 @@ async def storyboard(storyboard_request: FinalStoryboardRequest) -> Storyboard:
     )
     character_relationship_graph = (
         await storyboard_builder.create_character_relationship_graph(
-            character_summaries
+            chapter_character_summaries
         )
     )
     return {
