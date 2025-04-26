@@ -86,7 +86,8 @@ graph TD
                     ),
                     comments: {
                         ...newChapters[currentChapter].comments,
-                        [hash8byte]: comment
+                        [hash8byte]: comment,
+                        [hash8byte + '_suggestion']: data.suggestion
                     }
                 };
                 return newChapters;
@@ -258,7 +259,28 @@ graph TD
     const summarizeBook = async () => {
         
     }
-
+    
+    const applySuggestion = async (comment: string) => {
+        setChapters(prev => {
+            const newChapters = [...prev];
+            newChapters[currentChapter] = {
+                ...newChapters[currentChapter],
+                text: newChapters[currentChapter].text.replace(
+                    activeTextSelection,
+                    activeTextSelection.replace(chapters[currentChapter].comments[comment], chapters[currentChapter].comments[comment + '_suggestion'])
+                ),
+                comments: {
+                    ...newChapters[currentChapter].comments,
+                    [comment]: chapters[currentChapter].comments[comment + '_suggestion'],
+                    [comment + '_suggestion']: undefined
+                }
+            };
+            return newChapters;
+        });
+        setCurrentView('text');
+        toast.success('Suggestion applied');
+    }
+    
     const logicInspectChapters = async () => {
         if(isTextEditing){
             toast.error('Please finish editing before summarizing');
@@ -371,6 +393,7 @@ graph TD
                                     </div>
                                 )}
                                 <p className="text-sm">{chapters[currentChapter].comments[comment] || "Click on marked text to view comments"}</p>
+                                <p className="text-sm italic">{chapters[currentChapter].comments[comment + '_suggestion'] || ""} <Button onClick={() => applySuggestion(comment)}>Zastosuj</Button></p>
                             </div>
                         </div>
                     )}
