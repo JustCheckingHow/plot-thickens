@@ -9,7 +9,7 @@ import Nav from "@/components/Nav/Nav";
 import TextView from "@/components/TextView/TextView";
 import ModalBigScreen from "@/components/ModalBigScreen/ModalBigScreen";
 import { ModalContext } from "@/context/ModalContext";
-
+import { changeChapter } from "@/components/Chapters/Chapters";
 const DocumentView = () => {
     const { state } = useLocation();
     const { sendMessage, lastMessage } = useWebSocket(API_URL.replace(/^http/, "ws") + "/api/style-guard", {
@@ -459,6 +459,7 @@ const DocumentView = () => {
         <div className="w-full flex " style={{paddingLeft: "240px"}}>
             <Nav
                 chapters={chapters}
+                // changeChapter={changeChapter}
                 handleAddnewChapter={handleAddnewChapter}
                 currentChapter={currentChapter}
                 setCurrentChapter={setCurrentChapter}
@@ -468,6 +469,7 @@ const DocumentView = () => {
                 chapterAnalyzeLoading={chapterAnalyzeLoading}
                 setChapterAnalyzeLoading={setChapterAnalyzeLoading}
                 logicInspectChapters={logicInspectChapters}
+                analyzeGrammar={analyzeGrammar}
             />
             <div className="content container">
                 <TextView
