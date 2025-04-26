@@ -250,6 +250,22 @@ const DocumentView = () => {
         if (isTextEditing) {
             setIsTextEditing(false);
             analyzeText(currentChapter);
+            setChapters(prev => {
+                const newChapters = [...prev];
+                newChapters[currentChapter] = {
+                    ...newChapters[currentChapter],
+                    text: newChapters[currentChapter].text,
+                    title: newChapters[currentChapter].title,
+                    order: newChapters[currentChapter].order,
+                    comments: {},
+                    character_summary: "",
+                    location_summary: "",
+                    character_relationship_graph: "",
+                    timeline_summary: "",
+                    plotpoint_summary: ""
+                };
+                return newChapters;
+            });
         } else {
             setIsTextEditing(true);
         }
@@ -521,7 +537,7 @@ const DocumentView = () => {
                                     {chapterAnalyzeLoading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
                                     Style text Analyze
                                 </Button>
-                                {currentChapter > 0 && <Button onClick={() => logicInspectChapters(currentChapter)} disabled={chapterAnalyzeLoading}>
+                                {<Button onClick={() => logicInspectChapters(currentChapter)} disabled={chapterAnalyzeLoading}>
                                     {chapterAnalyzeLoading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
                                     Logic inspect
                                 </Button>}
