@@ -1,27 +1,10 @@
 import { Carousel, CarouselItem, CarouselContent, CarouselPrevious, CarouselNext    , type CarouselApi } from "@/components/ui/carousel"
 import {useEffect, useState} from "react"
+import { Chapter } from "@/types/Chapter";
+import { Button } from "@/components/ui/button";
 
-
-
-const Chapters = () => {
+const Chapters = ({chapters, handleAddnewChapter, changeChapter, currentChapter}: {chapters: Chapter[], handleAddnewChapter: () => void, changeChapter: (order: number) => void, currentChapter: number}) => {
     const [api, setApi] = useState<CarouselApi>()
-  const [chaptersList,_] = useState([
-    {
-        id: 1,
-        title: "Chapter 1",
-        description: "Chapter 1 description"
-    },
-    {
-        id: 2,
-        title: "Chapter 2",
-        description: "Chapter 2 description"
-    },
-    {
-        id: 3,
-        title: "Chapter 3",
-        description: "Chapter 3 description"
-    }
-  ])
  
   useEffect(() => {
     if (!api) {
@@ -40,14 +23,18 @@ const Chapters = () => {
     <div className="relative">
     <Carousel setApi={setApi}>
       <CarouselContent className="gap-4">
-        {chaptersList.map(chapter => (
-          <CarouselItem key={chapter.id} className="basis-1/6 bg-zinc-800 px-4 py-4">
+        {chapters.map(chapter => (
+          <CarouselItem key={chapter.order} onClick={() => {
+            changeChapter(chapter.order)
+          }} className={"basis-1/6 px-4 py-4" + (currentChapter === chapter.order ? " bg-zinc-600" : " bg-zinc-700")}>
             <div className="flex flex-col gap-2">
               <h3 className="text-lg font-semibold">{chapter.title}</h3>
-              <p className="text-muted-foreground">{chapter.description}</p>
             </div>
           </CarouselItem>
         ))}
+        <CarouselItem className="basis-1/6 px-4 py-4 bg-zinc-700 items-center justify-center flex">
+            <Button onClick={handleAddnewChapter}>Add new chapter</Button>
+        </CarouselItem>
       </CarouselContent>
       <CarouselPrevious />
       <CarouselNext />
