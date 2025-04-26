@@ -19,8 +19,8 @@ export function StylePopup({updateStylePrompt}: {updateStylePrompt: (style: stri
   const [text, setText] = React.useState('');
   const [selectedFile, setSelectedFile] = React.useState<File | null>(null);
   const [isUploading, setIsUploading] = React.useState(false);
-  const [isProcessing, setIsProcessing] = React.useState(false);
-  const [processingProgress, setProcessingProgress] = React.useState(0);
+  const [isProcessing, _setIsProcessing] = React.useState(false);
+  const [processingProgress, _setProcessingProgress] = React.useState(0);
 
   React.useEffect(() => {
     setText(localStorage.getItem('styleText') || '');
