@@ -71,6 +71,27 @@ Provide your response in the following format:
  ...
 """
 
+PLOTPOINTS_PROMPT = """
+You are an expert at storyboard writer. 
+You are given a chapter of a book. 
+
+Your task is to extract all the major plotpoints in the chapter.
+Remember to describe the plotpoint in detail. 
+DO NOT include any plotpoints that are not mentioned in the text.
+If given a list of plotpoints from chapter chunks, combine them into consistent plotpoint summaries.
+When summarizing combined chapter chunks, make sure you correlate each information with the correct chapter.
+Always include from which chapter the information is from. You must indicate it by writing [chapter: chapter_number] next to that information.
+Provide your response in the following format:
+
+## ** Plotpoint Name **
+** Opened in [chapter: chapter_number] **
+** Mentioned in [chapter: chapter_number] **
+** Status: [open, closed, or ongoing] **
+** Short Description **
+...
+
+"""
+
 
 class StoryBoardBuilder:
     def __init__(self):
@@ -92,6 +113,11 @@ class StoryBoardBuilder:
                 instructions=TIMELINE_BUILDER_PROMPT,
                 model=self.model,
             ),
+            "plotpoints_extractor": Agent(
+                "Plotpoints Extractor",
+                instructions=PLOTPOINTS_PROMPT,
+                model=self.model,
+            ),
         }
         self.runner = Runner()
 
@@ -109,6 +135,12 @@ class StoryBoardBuilder:
     async def _extract_chapter_locations(self, prompt: str):
         """Extract locations from a chapter"""
         response = await self.runner.run(self.agents["location_extractor"], prompt)
+        return response.final_output
+
+    @track(name="extract_chapter_plotpoints")
+    async def _extract_chapter_plotpoints(self, prompt: str):
+        """Extract plotpoints from a chapter"""
+        response = await self.runner.run(self.agents["plotpoints_extractor"], prompt)
         return response.final_output
 
     async def process_chapter(
@@ -132,22 +164,25 @@ class StoryBoardBuilder:
             location_chapter_summary = await self._extract_chapter_locations(prompt)
             character_chapter_summary = await self._extract_chapter_characters(prompt)
             timeline_chapter_summary = await self._build_timeline(prompt)
+            plotpoints_chapter_summary = await self._extract_chapter_plotpoints(prompt)
             chapter_chunked_data.append(
                 {
                     "location_chapter_summary": location_chapter_summary,
                     "character_chapter_summary": character_chapter_summary,
                     "timeline_chapter_summary": timeline_chapter_summary,
+                    "plotpoints_chapter_summary": plotpoints_chapter_summary,
                 }
             )
             chunk_id += 1
         combined_character_data = ""
         combined_location_data = ""
         combined_timeline_data = ""
+        combined_plotpoints_data = ""
         for i, data_element in enumerate(chapter_chunked_data):
             combined_character_data += f"{data_element['character_chapter_summary']}\n"
             combined_location_data += f"{data_element['location_chapter_summary']}\n"
             combined_timeline_data += f"{data_element['timeline_chapter_summary']}\n"
-
+            combined_plotpoints_data += f"{data_element['plotpoints_chapter_summary']}\n"
         logger.info("Synthesizing character and location summaries...")
         summary_character_prompt = f"""
         HERE ARE THE CHAPTER {chapter_number} CHUNKS:
@@ -170,11 +205,19 @@ class StoryBoardBuilder:
         {combined_timeline_data}
         """
         summary_timeline_data = await self._build_timeline(summary_timeline_prompt)
+
+        summary_plotpoints_prompt = f"""
+        HERE ARE THE CHAPTER {chapter_number} CHUNKS:
+        {combined_plotpoints_data}
+        """
+        summary_plotpoints_data = await self._extract_chapter_plotpoints(summary_plotpoints_prompt)
+        
         logger.info("Finished processing chapter...")
         return {
             "character_summaries": summary_character_data,
             "location_summaries": summary_location_data,
             "timeline_summaries": summary_timeline_data,
+            "plotpoints_summaries": summary_plotpoints_data,
         }
 
     @track(name="create_character_relationship_graph")
