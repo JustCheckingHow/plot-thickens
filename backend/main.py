@@ -5,6 +5,7 @@ from writer_agents.style_inspector import StyleGuard
 from style_definer import StyleDefiner
 from writer_agents.logic_inspector import LogicInspector
 from storyboarding.storyboard_builder import StoryBoardBuilder
+from writer_agents.grammar_inspector import GrammarInspector
 from pydantic import BaseModel
 from typing import Optional, List
 from loguru import logger
@@ -151,7 +152,7 @@ async def storyboard(storyboard_request: FinalStoryboardRequest) -> Storyboard:
         chapter_location_summaries += f"Chapter {chapter_storyboard.chapter_number}:\n{chapter_storyboard.location_summaries}\n"
         chapter_timeline_summaries += f"Chapter {chapter_storyboard.chapter_number}:\n{chapter_storyboard.timeline_summaries}\n"
         chapter_plotpoints_summaries += f"Chapter {chapter_storyboard.chapter_number}:\n{chapter_storyboard.plotpoints_summaries}\n"
-        
+
     character_summaries = await storyboard_builder._extract_chapter_characters(
         f"Here are the character summaries for the book. Combine them into a single summary: {chapter_character_summaries}"
     )
@@ -301,6 +302,62 @@ async def websocket_style_guard(websocket: WebSocket):
             if not issues_found:
                 await websocket.send_json({"status": "no_issues_found"})
             await websocket.send_json({"status": "done"})
+
+    except WebSocketDisconnect:
+        pass
+
+
+@app.websocket("/api/grammar-inspector")
+async def websocket_grammar_inspector(websocket: WebSocket):
+    issues_found = False
+
+    async def send_comment(original_text, text_with_comments, suggestion):
+        nonlocal issues_found
+        issues_found = True
+        try:
+            await websocket.send_json(
+                {
+                    "original_text": original_text,
+                    "comment": text_with_comments,
+                    "suggestion": suggestion,
+                }
+            )
+        except RuntimeError as e:
+            # Connection already closed
+            logger.info(f"Connection already closed: {e}")
+            pass
+        return text_with_comments
+
+    await websocket.accept()
+
+    # Create StyleGuard instance
+    grammar_inspector = GrammarInspector(callback=send_comment)
+
+    try:
+        while True:
+            # Receive next message
+            data = await websocket.receive_json()
+
+            # Get text for checking
+            text = data.get("text", "")
+
+            if not text:
+                await websocket.send_json({"error": "No text provided"})
+                continue
+
+            # Process the text
+            issues_found = False
+            await grammar_inspector.inspect_grammar(text)
+
+            logger.info("Text processed.")
+            try:
+                if not issues_found:
+                    await websocket.send_json({"status": "no_issues_found"})
+                await websocket.send_json({"status": "done"})
+            except RuntimeError as e:
+                # Connection already closed
+                logger.info(f"Connection already closed: {e}")
+                break
 
     except WebSocketDisconnect:
         pass

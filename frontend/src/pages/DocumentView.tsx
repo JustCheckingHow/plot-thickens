@@ -14,7 +14,7 @@ import {
     Menubar,
     MenubarTrigger,
     MenubarMenu,
-  } from "@/components/ui/menubar";
+} from "@/components/ui/menubar";
 import LocationSummary from "@/components/DocumentView/LocationSummary";
 import { Label } from "@/components/ui/label";
 import { Check, Edit, Loader2 } from "lucide-react";
@@ -26,6 +26,9 @@ import { useLocation } from "react-router-dom";
 const DocumentView = () => {
     const { state } = useLocation();
     const { sendMessage, lastMessage } = useWebSocket(API_URL.replace(/^http/, "ws") + "/api/style-guard", {
+        shouldReconnect: () => true
+    });
+    const { sendMessage: grammarInspect, lastMessage: grammarInspectLastMessage } = useWebSocket(API_URL.replace(/^http/, "ws") + "/api/grammar-inspector", {
         shouldReconnect: () => true
     });
     const { sendMessage: logicInspect, lastMessage: logicInspectLastMessage } = useWebSocket(API_URL.replace(/^http/, "ws") + "/api/logic-inspector", {
@@ -56,7 +59,7 @@ const DocumentView = () => {
 
     useEffect(() => {
         if (state && state.chapters) {
-            setChapters(state.chapters.map((text, index) : {text: string, title: string, order: number} => ({
+            setChapters(state.chapters.map((text, index): { text: string, title: string, order: number } => ({
                 "text": text,
                 "title": state.chapter_names[index],
                 "order": index,
@@ -80,6 +83,33 @@ const DocumentView = () => {
         localStorage.setItem('chapters', JSON.stringify(chapters));
         localStorage.setItem('currentChapter', JSON.stringify(currentChapter));
     }, [chapters, currentChapter])
+
+    useEffect(() => {
+        if (!grammarInspectLastMessage) return;
+        const data = JSON.parse(grammarInspectLastMessage.data);
+        if (data && data.original_text) {
+            const { original_text, comment } = data;
+            const hash8byte = MD5(original_text).slice(0, 8);
+            toast.success(comment);
+            setChapters(prevChapters => {
+                const newChapters = [...prevChapters];
+                newChapters[currentChapter] = {
+                    ...newChapters[currentChapter],
+                    text: newChapters[currentChapter].text.replace(
+                        original_text,
+                        `<comment id=${hash8byte}>${original_text}</comment>`
+                    ),
+                    comments: {
+                        ...newChapters[currentChapter].comments,
+                        [hash8byte]: comment,
+                        [hash8byte + '_suggestion']: data.suggestion
+                    }
+                };
+                return newChapters;
+            });
+        }
+    }, [grammarInspectLastMessage])
+    
 
     useEffect(() => {
         if (!logicInspectLastMessage) return;
@@ -106,6 +136,7 @@ const DocumentView = () => {
             });
         }
     }, [logicInspectLastMessage])
+    
 
     useEffect(() => {
         if (!lastMessage) return;
@@ -133,7 +164,7 @@ const DocumentView = () => {
         if (data && data.status === "style_prompt_updated") {
             toast.success("Style text updated");
         }
-        if(data && data.error){
+        if (data && data.error) {
             toast.error(data.error);
         }
     }, [lastMessage]);
@@ -143,37 +174,37 @@ const DocumentView = () => {
         if (!textContainerRef.current) return;
 
         const container = textContainerRef.current;
-        
+
         // Process all comment elements in the container
         const addEventListeners = () => {
             const commentElements = container.querySelectorAll('comment');
-            
+
             commentElements.forEach(element => {
                 element.setAttribute('style', 'border-bottom: 1px dashed #666; cursor: pointer;');
 
                 console.log(element);
-                
+
                 element.addEventListener('mouseover', (e) => {
                     const target = e.currentTarget as HTMLElement;
                     const commentText = target.getAttribute('comment');
                     const text = target.textContent || '';
-                    
+
                     if (commentText) {
                         setComment(commentText);
                         setActiveTextSelection(text);
                     }
                 });
-                
+
                 element.addEventListener('mouseout', () => {
                     // Keep the comment visible, don't clear it
                     // setComment('');
                 });
-                
+
                 element.addEventListener('click', (e) => {
                     const target = e.currentTarget as HTMLElement;
                     const commentText = target.id;
                     const text = target.textContent || '';
-                    
+
                     if (text && commentText) {
                         console.log(chapters);
                         setCurrentView('comments');
@@ -183,19 +214,19 @@ const DocumentView = () => {
                 });
             });
         };
-        
+
         // Add event listeners initially
         addEventListeners();
-        
+
         // Use MutationObserver to detect changes in the DOM
         const observer = new MutationObserver(addEventListeners);
         observer.observe(container, { childList: true, subtree: true });
-        
+
         return () => {
             observer.disconnect();
         };
     }, [chapters[currentChapter].comments]);
-    
+
     const updateStylePrompt = async (style: string) => {
         await sendMessage(JSON.stringify({
             "style_prompt": style
@@ -208,8 +239,15 @@ const DocumentView = () => {
         }));
     }
 
+    const analyzeGrammar = async (chapterNumber: number) => {
+        console.log("Analyzing grammar");
+        await grammarInspect(JSON.stringify({
+            "text": chapters[chapterNumber].text
+        }));
+    }
+
     const handleEditText = () => {
-        if(isTextEditing){
+        if (isTextEditing) {
             setIsTextEditing(false);
             analyzeText(currentChapter);
         } else {
@@ -319,9 +357,9 @@ const DocumentView = () => {
     }
 
     const summarizeBook = async () => {
-        
+
     }
-    
+
     const applySuggestion = async (comment: string) => {
         setChapters(prev => {
             const newChapters = [...prev];
@@ -378,36 +416,36 @@ const DocumentView = () => {
             <div className="flex items-center justify-between mb-4">
                 <h2 className="text-2xl font-bold mb-4">Your book</h2>
                 <div className="flex gap-2">
-                    
+
                     <Button onClick={resetBook} variant="destructive">Clear book</Button>
-                    <StylePopup updateStylePrompt={updateStylePrompt}/>
+                    <StylePopup updateStylePrompt={updateStylePrompt} />
                     <Button onClick={summarizeBook}>Summarize</Button>
-                    <ExportPopup content={chapters.map(chapter => "# " + chapter.title + "\n\n" + chapter.text).join('\n\n')} comments={chapters.map(chapter => chapter.comments).reduce((acc, curr) => ({...acc, ...curr}), {})} />
+                    <ExportPopup content={chapters.map(chapter => "# " + chapter.title + "\n\n" + chapter.text).join('\n\n')} comments={chapters.map(chapter => chapter.comments).reduce((acc, curr) => ({ ...acc, ...curr }), {})} />
                 </div>
             </div>
-            
+
             <Chapters
                 chapters={chapters}
                 handleAddnewChapter={handleAddnewChapter}
                 changeChapter={setCurrentChapter}
                 currentChapter={currentChapter}
-                removeChapter={removeChapter}/>
+                removeChapter={removeChapter} />
             <div className="flex gap-4 mt-4">
                 <div className="bg-zinc-800 flex-1 px-4 py-4 overflow-y-auto max-h-[90vh] relative" ref={textContainerRef}>
                     <Label htmlFor="chapter-titl">Chapter Title</Label>
                     <Input
-                     id="chapter-title"
-                     className="mt-2"
-                     value={chapters[currentChapter].title || ""}
-                     placeholder="Chapter title"
-                     onChange={(e) => setChapters(prev => {
-                        const newChapters = [...prev];
-                        newChapters[currentChapter] = {
-                            ...newChapters[currentChapter],
-                            title: e.target.value
-                        };
-                        return newChapters;
-                    })} /><br/>
+                        id="chapter-title"
+                        className="mt-2"
+                        value={chapters[currentChapter].title || ""}
+                        placeholder="Chapter title"
+                        onChange={(e) => setChapters(prev => {
+                            const newChapters = [...prev];
+                            newChapters[currentChapter] = {
+                                ...newChapters[currentChapter],
+                                title: e.target.value
+                            };
+                            return newChapters;
+                        })} /><br />
                     {(isTextEditing) ? <Textarea
                         value={chapters[currentChapter].text || ""}
                         onChange={(e) => setChapters(prev => {
@@ -428,22 +466,22 @@ const DocumentView = () => {
                     <div>
                         <Menubar>
                             <MenubarMenu>
-                                    <MenubarTrigger onClick={() => setCurrentView('character_summary')}>Character Summary</MenubarTrigger>
+                                <MenubarTrigger onClick={() => setCurrentView('character_summary')}>Character Summary</MenubarTrigger>
                             </MenubarMenu>
                             <MenubarMenu>
-                                    <MenubarTrigger onClick={() => setCurrentView('location_summary')}>Location Summary</MenubarTrigger>
+                                <MenubarTrigger onClick={() => setCurrentView('location_summary')}>Location Summary</MenubarTrigger>
                             </MenubarMenu>
                             <MenubarMenu>
-                                    <MenubarTrigger onClick={() => setCurrentView('character_relationship_graph')}>Character Relationship Graph</MenubarTrigger>
+                                <MenubarTrigger onClick={() => setCurrentView('character_relationship_graph')}>Character Relationship Graph</MenubarTrigger>
                             </MenubarMenu>
                             <MenubarMenu>
-                                    <MenubarTrigger onClick={() => setCurrentView('timeline_summary')}>Timeline Summary</MenubarTrigger>
+                                <MenubarTrigger onClick={() => setCurrentView('timeline_summary')}>Timeline Summary</MenubarTrigger>
                             </MenubarMenu>
                             <MenubarMenu>
-                                    <MenubarTrigger onClick={() => setCurrentView('plotpoint_summary')}>Plot Points</MenubarTrigger>
+                                <MenubarTrigger onClick={() => setCurrentView('plotpoint_summary')}>Plot Points</MenubarTrigger>
                             </MenubarMenu>
                             <MenubarMenu>
-                                    <MenubarTrigger onClick={() => setCurrentView('comments')}>Comments</MenubarTrigger>
+                                <MenubarTrigger onClick={() => setCurrentView('comments')}>Comments</MenubarTrigger>
                             </MenubarMenu>
                         </Menubar>
                     </div>
@@ -474,6 +512,11 @@ const DocumentView = () => {
                     {currentView === "comments" && (
                         <div>
                             <div className="flex gap-2 justify-center">
+                                <Button onClick={() => analyzeGrammar(currentChapter)} disabled={chapterAnalyzeLoading}>
+                                    {chapterAnalyzeLoading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                                    Grammar text Analyze
+                                </Button>
+
                                 <Button onClick={() => analyzeText(currentChapter)} disabled={chapterAnalyzeLoading}>
                                     {chapterAnalyzeLoading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
                                     Style text Analyze
