@@ -302,7 +302,7 @@ const DocumentView = () => {
                 return newChapters;
             });
             setChapterAnalyzeLoading(false);
-            toast.success('Chapter refined');
+            toast.success(`Chapter "${newChapterResponse.title}" analyzed`);
             return newChapterResponse;
         }).catch(() => {
             setChapterAnalyzeLoading(false);
