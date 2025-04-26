@@ -9,7 +9,7 @@ from pydantic import BaseModel
 from typing import Optional, List
 from loguru import logger
 from exports.word_export import markdown_to_docx_with_comments, MarkdownToWordRequest
-from exports.word2mkdn import docx_to_markdown_chapters
+from exports.word2mkdn import docx_to_markdown_chapters, pdf_to_markdown_chapters
 import tempfile
 
 import base64
@@ -52,10 +52,15 @@ app.add_middleware(
 )
 
 
-@app.post("/api/docx-to-style")
-async def docx_to_style(file: UploadFile):
+@app.post("/api/doc-to-style")
+async def doc_to_style(file: UploadFile):
     # Create a temporary file to store the uploaded content
-    with tempfile.NamedTemporaryFile(delete=False, suffix=".docx") as temp_file:
+    suffix = ".docx"
+    process_fn = docx_to_markdown_chapters
+    if file.content_type == "application/pdf":
+        suffix = ".pdf"
+        process_fn = pdf_to_markdown_chapters
+    with tempfile.NamedTemporaryFile(delete=False, suffix=suffix) as temp_file:
         temp_file_path = temp_file.name
         # Write the uploaded file content to the temporary file
         content = await file.read()
@@ -63,7 +68,7 @@ async def docx_to_style(file: UploadFile):
 
     try:
         # Convert the docx file to markdown chapters
-        markdown_chapters, _ = docx_to_markdown_chapters(temp_file_path)
+        markdown_chapters, _ = process_fn(temp_file_path)
         markdown_chapters_str = "\n".join(markdown_chapters)
 
         style_definer = StyleDefiner()
@@ -73,10 +78,17 @@ async def docx_to_style(file: UploadFile):
         raise HTTPException(status_code=500, detail=str(e))
 
 
-@app.post("/api/docx-to-markdown")
-async def docx_to_markdown(file: UploadFile) -> dict:
+@app.post("/api/doc-to-markdown")
+async def doc_to_markdown(file: UploadFile) -> dict:
     # Create a temporary file to store the uploaded content
-    with tempfile.NamedTemporaryFile(delete=False, suffix=".docx") as temp_file:
+    suffix = ".docx"
+    process_fn = docx_to_markdown_chapters
+    logger.info(f"File content type: {file.content_type}")
+    if file.content_type == "application/pdf" or file.filename.endswith(".pdf"):
+        logger.info("Converting PDF to markdown")
+        suffix = ".pdf"
+        process_fn = pdf_to_markdown_chapters
+    with tempfile.NamedTemporaryFile(delete=False, suffix=suffix) as temp_file:
         temp_file_path = temp_file.name
         # Write the uploaded file content to the temporary file
         content = await file.read()
@@ -84,9 +96,10 @@ async def docx_to_markdown(file: UploadFile) -> dict:
 
     try:
         # Convert the docx file to markdown chapters
-        markdown_chapters, chapter_names = docx_to_markdown_chapters(temp_file_path)
+        markdown_chapters, chapter_names = process_fn(temp_file_path)
         return {"chapters": markdown_chapters, "chapter_names": chapter_names}
     except Exception as e:
+        logger.error(f"Error converting document to markdown: {e}")
         raise HTTPException(status_code=500, detail=str(e))
 
 
