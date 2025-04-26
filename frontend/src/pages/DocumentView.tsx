@@ -352,8 +352,6 @@ graph TD
                         </Menubar>
                     </div>
 
-                    
-            
                     {currentView === "location_summary" && <LocationSummary location_summary={chapters[currentChapter].location_summary}/>}
                     {currentView === "character_summary" && chapters[currentChapter].character_summary && <CharacterSummary character_summary={chapters[currentChapter].character_summary}/>}
                     {currentView === "character_relationship_graph" && chapters[currentChapter].character_relationship_graph ? <MermaidChart chart={chapters[currentChapter].character_relationship_graph}/> : <div>Loading...</div>}
