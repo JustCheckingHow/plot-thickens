@@ -34,7 +34,7 @@ export function StylePopup({updateStylePrompt}: {updateStylePrompt: (style: stri
   };
 
   const handleFileSelect = (file: File) => {
-    if (file.name.endsWith('.docx')) {
+    if (file.name.endsWith('.docx') || file.name.endsWith('.pdf')) {
       setSelectedFile(file);
     }
   };
@@ -50,7 +50,7 @@ export function StylePopup({updateStylePrompt}: {updateStylePrompt: (style: stri
       formData.append('file', selectedFile);
       
       // Upload file to API - ensure content type is not set (let browser set it)
-      const response = await axiosInstance.post(API_URL + '/api/docx-to-style', formData, {
+      const response = await axiosInstance.post(API_URL + '/api/doc-to-style', formData, {
         headers: {
           'Content-Type': 'multipart/form-data',
         },
@@ -102,7 +102,7 @@ export function StylePopup({updateStylePrompt}: {updateStylePrompt: (style: stri
                     </div>
                   </div>
                 <div className="grid gap-2 mt-4">
-                  <Label htmlFor="bookUpload">Upload Book (DOCX)</Label>
+                  <Label htmlFor="bookUpload">Upload Book (DOCX/PDF)</Label>
                   
                   {!selectedFile && !isProcessing && (
                     <div 
@@ -131,17 +131,17 @@ export function StylePopup({updateStylePrompt}: {updateStylePrompt: (style: stri
                           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" />
                         </svg>
                         <p className="text-sm text-muted-foreground">
-                          Drag & drop your DOCX file here, or{" "}
+                          Drag & drop your DOCX/PDF file here, or{" "}
                           <span className="text-primary font-medium">browse</span>
                         </p>
                         <p className="text-xs text-muted-foreground">
-                          Only .docx files are supported
+                          Only .docx and .pdf files are supported
                         </p>
                       </div>
                       <input
                         id="bookUpload"
                         type="file"
-                        accept=".docx"
+                        accept=".docx, .pdf"
                         className="hidden"
                         onChange={(e) => {
                           if (e.target.files && e.target.files.length > 0) {

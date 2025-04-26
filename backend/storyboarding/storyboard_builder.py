@@ -147,7 +147,7 @@ class StoryBoardBuilder:
         self,
         chapter_number: int,
         chapter_text: str,
-        chunk_size: int = 1000,
+        chunk_size: int = 10000,
         overlap: int = 50,
     ):
         """Process a chapter and extract key events"""
