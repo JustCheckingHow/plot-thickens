@@ -3,7 +3,7 @@ import {useEffect, useState} from "react"
 import { Chapter } from "@/types/Chapter";
 import { Button } from "@/components/ui/button";
 
-const Chapters = ({chapters, handleAddnewChapter, changeChapter, currentChapter}: {chapters: Chapter[], handleAddnewChapter: () => void, changeChapter: (order: number) => void, currentChapter: number}) => {
+const Chapters = ({chapters, handleAddnewChapter, changeChapter, currentChapter, removeChapter}: {chapters: Chapter[], handleAddnewChapter: () => void, changeChapter: (order: number) => void, currentChapter: number, removeChapter: (order: number) => void}) => {
     const [api, setApi] = useState<CarouselApi>()
  
   useEffect(() => {
@@ -26,7 +26,8 @@ const Chapters = ({chapters, handleAddnewChapter, changeChapter, currentChapter}
         {chapters.map(chapter => (
           <CarouselItem key={chapter.order} onClick={() => {
             changeChapter(chapter.order)
-          }} className={"basis-1/6 px-4 py-4" + (currentChapter === chapter.order ? " bg-zinc-600" : " bg-zinc-700")}>
+          }} className={"relative basis-1/6 px-4 py-4" + (currentChapter === chapter.order ? " bg-zinc-600" : " bg-zinc-700")}>
+            <div className="absolute top-0 right-0" onClick={() => removeChapter(chapter.order)}>x</div>
             <div className="flex flex-col gap-2">
               <h3 className="text-lg font-semibold">{chapter.title}</h3>
             </div>

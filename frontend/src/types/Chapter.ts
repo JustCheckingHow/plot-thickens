@@ -6,4 +6,7 @@ export type Chapter = {
     order: number;
     location_summary: string;
     character_relationship_graph: string;
+    comments: {
+        [key: string]: string;
+    }
 }
