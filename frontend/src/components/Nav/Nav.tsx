@@ -48,6 +48,7 @@ const Nav = ({
     const context = useContext(ModalContext) as ModalContextType | undefined;
     if (!context) throw new Error("ModalContext is undefined. Make sure ModalProvider is in the component tree.");
     const { setModalVisible, modalVisible } = context;
+    const [loading, setLoading] = useState<"logic" | "grammy" | "style" | null>(null);
 
     console.log(currentChapter);
 
@@ -105,20 +106,32 @@ const Nav = ({
             </ul>
             <div style={{marginTop: "auto"}}>
               <div className="flex gap-2 mb-2">
-                <Button onClick={() => analyzeText(currentChapter)} disabled={chapterAnalyzeLoading}>
-                    {chapterAnalyzeLoading && <Loader2 className="animate-spin" />}
+                <Button onClick={() => {
+                  setLoading("style");
+                  analyzeText(currentChapter);
+                  setLoading(null);
+                }} disabled={loading === "style"}>
+                    {loading === "style" && <Loader2 className="animate-spin" />}
                     Analyze Style
                 </Button>
               </div>
               <div className="flex gap-2 mb-2">
-                <Button onClick={() => logicInspectChapters(currentChapter)} disabled={chapterAnalyzeLoading}>
-                    {chapterAnalyzeLoading && <Loader2 className="animate-spin" />}
+                <Button onClick={() => {
+                  setLoading("logic");
+                  logicInspectChapters(currentChapter);
+                  setLoading(null);
+                }} disabled={loading === "logic"}>
+                    {loading === "logic" && <Loader2 className="animate-spin" />}
                     Logic Inspect
                 </Button>
               </div>
               <div className="flex gap-2 mb-2">
-                <Button onClick={() => analyzeGrammar(currentChapter)} disabled={chapterAnalyzeLoading}>
-                    {chapterAnalyzeLoading && <Loader2 className="animate-spin" />}
+                <Button onClick={() => {
+                  setLoading("grammy");
+                  analyzeGrammar(currentChapter);
+                  setLoading(null);
+                }} disabled={loading === "grammy"}>
+                    {loading === "grammy" && <Loader2 className="animate-spin" />}
                     Analyze Grammar
                 </Button>
               </div>
