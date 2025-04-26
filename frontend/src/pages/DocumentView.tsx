@@ -2,7 +2,7 @@ import Chapters from "@/components/Chapters/Chapters";
 import { StylePopup } from "@/components/StylePopup/StylePopup";
 import { Button } from "@/components/ui/button";
 import { NavigationMenu, NavigationMenuItem, NavigationMenuLink } from "@/components/ui/navigation-menu";
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import useWebSocket from "react-use-websocket";
 import { API_URL } from "@/api/axios";
 import { toast } from "sonner";
@@ -20,14 +20,20 @@ const DocumentView = () => {
     const { sendMessage, lastMessage } = useWebSocket(API_URL.replace(/^http/, "ws") + "/api/style-guard", {
         shouldReconnect: () => true
     });
-    const [comment, __] = useState('');
+    const [comment, setComment] = useState('');
+    const [activeTextSelection, setActiveTextSelection] = useState('');
     const chart = `
 graph TD
-    CygnusX14_ThirdMoon-->|setting|CygnusX14_ThirdMoon
-    UnchartedSector_Xylos-->|setting|UnchartedSector_Xylos
+    Eva-->|mother|Anya
+    Anya-->|daughter|Eva
+    Eva-->|co-pilot|Jax
+    Jax-->|co-pilot|Eva
+    Eva-->|professional camaraderie|Unnamed
+    Unnamed-->|professional camaraderie|Eva
 `;
 
     const [commentsDict, setApiCommentsDict] = useState({});
+    const textContainerRef = useRef<HTMLDivElement>(null);
 
     useEffect(() => {
         if (!lastMessage) return;
@@ -44,7 +50,7 @@ graph TD
             });
             setText(prevText => prevText.replaceAll(
                 original_text,
-                `<comment id=${hash8byte}>{{${original_text}}}</comment>`
+                `<comment id=${hash8byte} comment="${comment}">${original_text}</comment>`
             ));
         }
         if (data && data.status === "style_prompt_updated") {
@@ -52,10 +58,63 @@ graph TD
         }
     }, [lastMessage]);
 
+    useEffect(() => {
+        // Add event listeners after the component mounts or text changes
+        if (!textContainerRef.current) return;
+
+        const container = textContainerRef.current;
+        
+        // Process all comment elements in the container
+        const addEventListeners = () => {
+            const commentElements = container.querySelectorAll('comment');
+            
+            commentElements.forEach(element => {
+                element.setAttribute('style', 'border-bottom: 1px dashed #666; cursor: pointer;');
+                
+                element.addEventListener('mouseover', (e) => {
+                    const target = e.currentTarget as HTMLElement;
+                    const commentText = target.getAttribute('comment');
+                    const text = target.textContent || '';
+                    
+                    if (commentText) {
+                        setComment(commentText);
+                        setActiveTextSelection(text);
+                    }
+                });
+                
+                element.addEventListener('mouseout', () => {
+                    // Keep the comment visible, don't clear it
+                    // setComment('');
+                });
+                
+                element.addEventListener('click', (e) => {
+                    const target = e.currentTarget as HTMLElement;
+                    const commentText = target.getAttribute('comment');
+                    const text = target.textContent || '';
+                    
+                    if (commentText) {
+                        setComment(commentText);
+                        setActiveTextSelection(text);
+                    }
+                });
+            });
+        };
+        
+        // Add event listeners initially
+        addEventListeners();
+        
+        // Use MutationObserver to detect changes in the DOM
+        const observer = new MutationObserver(addEventListeners);
+        observer.observe(container, { childList: true, subtree: true });
+        
+        return () => {
+            observer.disconnect();
+        };
+    }, [text]);
     
-    const updateStylePrompt = async () => {
+    const updateStylePrompt = async (style: string) => {
         await sendMessage(JSON.stringify({
-            "style_prompt": styleText
+            "style_prompt": style
         }));
         setText(prototypeText);
     }
@@ -66,26 +125,33 @@ graph TD
         }));
     }
 
-    // const showComment = (id: string) => {
-    //     setComment(commentsDict[id] || '');
-    // }
-
     return (
         <div>
             <h2>Your book</h2>
             <Chapters />
             <div className="flex gap-4 mt-4">
-                <div className="bg-zinc-800 flex-1 px-4 py-4 overflow-y-auto max-h-[90vh]" dangerouslySetInnerHTML={{ __html: text }}>
+                <div className="bg-zinc-800 flex-1 px-4 py-4 overflow-y-auto max-h-[90vh] relative" ref={textContainerRef} dangerouslySetInnerHTML={{ __html: text }}>
                 </div>
                 <div className="bg-zinc-800 flex-1 px-4 py-4">
-                <Button onClick={analyzeText}>Test text Analyze</Button>
-                <StylePopup styleText={styleText} setStyleText={setStyleText}/>
-                <Button onClick={updateStylePrompt}>Test Style_Prompt set</Button>
-
-                
-                    {comment && <p>{comment}</p>}
-
+                    <Button onClick={analyzeText}>Test text Analyze</Button>
+                    <StylePopup styleText={styleText} setStyleText={(style) => {
+                        setStyleText(style);
+                        updateStylePrompt(style);
+                    }}/>
+                    
                     <MermaidChart chart={chart}/>
+                    
+                    {comment && (
+                        <div className="mt-4 p-3 bg-zinc-700 rounded-md">
+                            <h3 className="text-sm font-medium mb-1">Feedback:</h3>
+                            {activeTextSelection && (
+                                <div className="text-xs italic bg-zinc-600 p-2 mb-2 rounded">
+                                    "{activeTextSelection}"
+                                </div>
+                            )}
+                            <p className="text-sm">{comment}</p>
+                        </div>
+                    )}
                 </div>
             </div>
         </div>
