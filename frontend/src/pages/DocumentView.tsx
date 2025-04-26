@@ -456,10 +456,7 @@ const DocumentView = () => {
     };
 
     return (
-        <div className="w-full">
-            
-
-            <div className="flex gap-4 mt-4">
+        <div className="w-full flex " style={{paddingLeft: "240px"}}>
             <Nav
                 chapters={chapters}
                 handleAddnewChapter={handleAddnewChapter}
@@ -469,6 +466,7 @@ const DocumentView = () => {
                 updateStylePrompt={updateStylePrompt}
                 logicInspectChapters={logicInspectChapters}
             />
+            <div className="content container">
                 <TextView
                     chapters={chapters}
                     setChapters={setChapters}
@@ -477,7 +475,7 @@ const DocumentView = () => {
                     handleAddnewChapter={handleAddnewChapter}
                     analyzeText={analyzeText}
                 />
-            </div>
+                </div>
             <ModalBigScreen
                 chapters={chapters}
                 currentChapter={currentChapter}
