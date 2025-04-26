@@ -1,3 +1,4 @@
+import random
 from fastapi import FastAPI, Request, WebSocket, WebSocketDisconnect, Response
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi import UploadFile, HTTPException
@@ -13,7 +14,7 @@ from exports.word_export import markdown_to_docx_with_comments, MarkdownToWordRe
 from exports.word2mkdn import docx_to_markdown_chapters, pdf_to_markdown_chapters
 import tempfile
 from writer_agents.utils import get_comment_discussion
-
+import time
 import base64
 
 app = FastAPI()
@@ -380,9 +381,10 @@ async def websocket_logic_inspector(websocket: WebSocket):
     issues_found = False
 
     async def send_comment(original_text, text_with_comments):
+        time.sleep(random.randint(0, 10) / 10)
         nonlocal issues_found
         issues_found = True
-        logger.info(f"Issues found: {issues_found}")
+        logger.info(f"Issues found: {text_with_comments}")
         await websocket.send_json(
             {
                 "original_text": original_text,

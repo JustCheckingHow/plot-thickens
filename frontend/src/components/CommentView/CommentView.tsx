@@ -33,10 +33,10 @@ const CommentView = ({
   };
 
   return (
-    <div className="mt-4 p-3 bg-zinc-700 rounded-md">
+    <div className="mt-4 p-3 rounded-md border border-zinc-800 dark:border-zinc-700 bg-zinc-200">
       <h3 className="text-sm font-medium mb-1">Feedback:</h3>
       {selectedText && (
-        <div className="text-xs italic bg-zinc-600 p-2 mb-2 rounded">
+        <div className="text-xs italic bg-zinc-100 p-2 mb-2 rounded">
           "{selectedText}"
         </div>
       )}
@@ -56,10 +56,10 @@ const CommentView = ({
       )}
 
       {subcomments.length > 0 && (
-        <div className="mt-3 pl-3 border-l border-zinc-500">
+        <div className="mt-3 pl-3 border-l border-zinc-200 dark:border-zinc-700">
           <h4 className="text-xs font-medium mb-1">Discussion:</h4>
           {subcomments.map((subcomment) => (
-            <div key={subcomment.id} className="text-xs mt-1 bg-zinc-600/50 p-1.5 rounded">
+            <div key={subcomment.id} className="text-xs mt-1 bg-zinc-100 dark:bg-zinc-800/50 p-1.5 rounded">
               {subcomment.text}
             </div>
           ))}
