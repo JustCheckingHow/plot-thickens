@@ -8,7 +8,6 @@ import { useLocation } from "react-router-dom";
 import Nav from "@/components/Nav/Nav";
 import TextView from "@/components/TextView/TextView";
 import ModalBigScreen from "@/components/ModalBigScreen/ModalBigScreen";
-import { ModalContext } from "@/context/ModalContext";
 
 const DocumentView = () => {
     const { state } = useLocation();
@@ -36,16 +35,14 @@ const DocumentView = () => {
         dummyBook
     ]);
     const [currentChapter, setCurrentChapter] = useState(0);
-    const [chapterAnalyzeLoading, setChapterAnalyzeLoading] = useState(false);
 
-    const textContainerRef = useRef<HTMLDivElement>(null);
     const pendingSubcommentsRef = useRef<Record<string, Set<string>>>({});
 
-    const { modalVisible, setModalVisible } = ModalContext;
 
     useEffect(() => {
         if (state && state.chapters) {
-            setChapters(state.chapters.map((text, index): { text: string, title: string, order: number } => ({
+            // @ts-ignore
+            setChapters(state.chapters.map((text, index): Chapter => ({
                 "text": text,
                 "title": state.chapter_names[index],
                 "order": index,
@@ -196,36 +193,8 @@ const DocumentView = () => {
         setCurrentChapter(chapters.length);
     }
 
-    const analyzeChapter = async (chapterNumber: number) => {
-        setChapterAnalyzeLoading(true);
-        await axiosInstance.post('api/chapter-storyboard', {
-            chapter_text: chapters[chapterNumber].text,
-            chapter_number: chapters[chapterNumber].order
-        }).then((response) => {
-            console.log(response.data);
-            setChapters(prev => {
-                const newChapters = [...prev];
-                newChapters[chapterNumber] = {
-                    ...newChapters[chapterNumber],
-                    character_summary: response.data.character_summary,
-                    location_summary: response.data.location_summary,
-                    character_relationship_graph: response.data.character_relationship_graph,
-                    timeline_summary: response.data.timeline_summary,
-                    plotpoint_summary: response.data.plotpoint_summary
-                };
-                return newChapters;
-            });
-            setChapterAnalyzeLoading(false);
-            console.log(chapters);
-            toast.success('Chapter analyzed');
-        }).catch(() => {
-            setChapterAnalyzeLoading(false);
-            toast.error('Failed to analyze chapter');
-        })
-    }
 
     const refineChapter = async (chapterNumber: number) => {
-        setChapterAnalyzeLoading(true);
 
         const response = await axiosInstance.post('api/incremental-storyboard', {
             chapter_text: chapters[chapterNumber].text,
@@ -259,36 +228,34 @@ const DocumentView = () => {
                 };
                 return newChapters;
             });
-            setChapterAnalyzeLoading(false);
             toast.success(`Chapter "${newChapterResponse.title}" analyzed`);
             return newChapterResponse;
         }).catch(() => {
-            setChapterAnalyzeLoading(false);
             toast.error('Failed to refine chapter');
             return chapters[chapterNumber];
         })
         return response;
     }
 
-    const applySuggestion = async (comment: string) => {
-        setChapters(prev => {
-            const newChapters = [...prev];
-            newChapters[currentChapter] = {
-                ...newChapters[currentChapter],
-                text: newChapters[currentChapter].text.replace(
-                    activeTextSelection,
-                    activeTextSelection.replace(chapters[currentChapter].comments[comment], chapters[currentChapter].comments[comment + '_suggestion'])
-                ),
-                comments: {
-                    ...newChapters[currentChapter].comments,
-                    [comment]: chapters[currentChapter].comments[comment + '_suggestion'],
-                    [comment + '_suggestion']: ""
-                }
-            };
-            return newChapters;
-        });
-        toast.success('Suggestion applied');
-    }
+    // const applySuggestion = async (comment: string) => {
+    //     setChapters(prev => {
+    //         const newChapters = [...prev];
+    //         newChapters[currentChapter] = {
+    //             ...newChapters[currentChapter],
+    //             text: newChapters[currentChapter].text.replace(
+    //                 activeTextSelection,
+    //                 activeTextSelection.replace(chapters[currentChapter].comments[comment], chapters[currentChapter].comments[comment + '_suggestion'])
+    //             ),
+    //             comments: {
+    //                 ...newChapters[currentChapter].comments,
+    //                 [comment]: chapters[currentChapter].comments[comment + '_suggestion'],
+    //                 [comment + '_suggestion']: ""
+    //             }
+    //         };
+    //         return newChapters;
+    //     });
+    //     toast.success('Suggestion applied');
+    // }
     
     const logicInspectChapters = async (chapterNumber: number) => {
         let character_summary = "";
@@ -320,14 +287,9 @@ const DocumentView = () => {
             <Nav
                 chapters={chapters}
                 changeChapter={(chapterIndex) => setCurrentChapter(chapterIndex)}
-                handleAddnewChapter={handleAddnewChapter}
                 currentChapter={currentChapter}
-                setCurrentChapter={setCurrentChapter}
-                removeChapter={removeChapter}
                 updateStylePrompt={updateStylePrompt}
-                analyzeChapter={analyzeChapter}
-                chapterAnalyzeLoading={chapterAnalyzeLoading}
-                setChapterAnalyzeLoading={setChapterAnalyzeLoading}
+                resetBook={resetBook}
                 logicInspectChapters={logicInspectChapters}
                 analyzeGrammar={analyzeGrammar}
                 analyzeText={analyzeText}
