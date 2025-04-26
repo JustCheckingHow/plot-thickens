@@ -52,11 +52,13 @@ def docx_to_markdown_chapters(file_path: str) -> tuple[List[str], List[str]]:
         start_idx = chapter_indices[i]
         end_idx = chapter_indices[i + 1]
         chapter_paras = doc.paragraphs[start_idx:end_idx]
-        chapters.append(_convert_paragraphs_to_markdown(chapter_paras))
-
+        
         # Extract chapter name from the heading
         if start_idx < len(doc.paragraphs):
             chapter_names.append(doc.paragraphs[start_idx].text)
+            
+        # Skip the heading paragraph when converting to markdown
+        chapters.append(_convert_paragraphs_to_markdown(chapter_paras[1:]))
 
     return chapters, chapter_names
 
@@ -176,7 +178,11 @@ def pdf_to_markdown_chapters(file_path: str) -> Tuple[List[str], List[str]]:
         # Ensure start_page doesn't exceed end_page
         if start_page <= end_page:
             chapter_text = _extract_text_from_page_range(doc, start_page, end_page)
-            chapters.append(chapter_text)
+            
+            # Remove the chapter title from the text
+            # This is a simple approach - remove the first occurrence of the title
+            cleaned_text = chapter_text.replace(title, "").replace(title.upper(), "")
+            chapters.append(cleaned_text)
             chapter_names.append(title)
 
     return chapters, chapter_names
