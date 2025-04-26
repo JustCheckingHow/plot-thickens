@@ -1,6 +1,6 @@
 FROM node:18 as build
 
-ENV VITE_API_URL 'https://api.justcheckinghow.com'
+ENV VITE_API_URL 'https://api.scriber.ink'
 WORKDIR /app
 
 COPY package*.json ./
