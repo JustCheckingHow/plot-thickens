@@ -20,6 +20,7 @@ import { Label } from "@/components/ui/label";
 import { Check, Edit, Loader2 } from "lucide-react";
 import { MD5 } from "@/lib/utils";
 import ExportPopup from "@/components/ExportPopup/ExportPopup";
+import MarkdownRenderer from "@/components/MarkdownRenderer";
 
 
 const DocumentView = () => {
@@ -234,7 +235,7 @@ const DocumentView = () => {
                     location_summary: response.data.location_summaries,
                     character_relationship_graph: response.data.character_relationship_graph,
                     timeline_summary: response.data.timeline_summaries,
-                    plotpoint_summary: response.data.plotpoint_summaries
+                    plotpoint_summary: response.data.plotpoints_summaries
                 };
                 return newChapters;
             });
@@ -384,7 +385,7 @@ const DocumentView = () => {
                         <div className="mt-4">
                             <h3 className="text-lg font-medium mb-2">Timeline Summary</h3>
                             {chapters[currentChapter].timeline_summary ? (
-                                <p>{chapters[currentChapter].timeline_summary}</p>
+                                <MarkdownRenderer content={chapters[currentChapter].timeline_summary} />
                             ) : (
                                 <p className="text-sm text-zinc-400">No timeline information available yet. Analyze the chapter first.</p>
                             )}
@@ -394,7 +395,7 @@ const DocumentView = () => {
                         <div className="mt-4">
                             <h3 className="text-lg font-medium mb-2">Plot Points</h3>
                             {chapters[currentChapter].plotpoint_summary ? (
-                                <p>{chapters[currentChapter].plotpoint_summary}</p>
+                                <MarkdownRenderer content={chapters[currentChapter].plotpoint_summary} />
                             ) : (
                                 <p className="text-sm text-zinc-400">No plot point information available yet. Analyze the chapter first.</p>
                             )}

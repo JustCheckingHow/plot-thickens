@@ -148,7 +148,7 @@ class StoryBoardBuilder:
         chapter_number: int,
         chapter_text: str,
         chunk_size: int = 1000,
-        overlap: int = 0,
+        overlap: int = 50,
     ):
         """Process a chapter and extract key events"""
         chapter_chunked_data = []
@@ -262,5 +262,5 @@ Create a Mermaid relationship graph based on these summaries.
         # Extract the Mermaid graph from the response
         resp = response.final_output
         # remove the ```mermaid and ``` from the response
-        resp = resp.replace("```mermaid", "").replace("```", "")
+        resp = resp.replace("```mermaid", "").replace("```", "").replace("’", "'")
         return resp

@@ -36,6 +36,7 @@ class Storyboard(BaseModel):
     timeline_summaries: str
     character_relationship_graph: Optional[str] = None
     chapter_number: Optional[int] = None
+    plotpoints_summaries: str
 
 
 class FinalStoryboardRequest(BaseModel):
