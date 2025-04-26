@@ -24,7 +24,10 @@ const Nav = ({
     setChapterAnalyzeLoading,
     analyzeGrammar,
     logicInspectChapters,
-    analyzeText
+    analyzeText,
+    setCurrentChapter,
+    handleAddnewChapter,
+    removeChapter
 }: {
     chapters: Chapter[];
     handleAddnewChapter: () => void;
@@ -38,6 +41,8 @@ const Nav = ({
     analyzeGrammar: (chapter: number) => void;
     logicInspectChapters: (chapter: number) => Promise<void>;
     analyzeText: (chapter: number) => void;
+    setCurrentChapter: (chapter: number) => void;
+    removeChapter: (chapter: number) => void;
 }) => {
     type ModalVisibleType = "characters" | "locations" | "character_relationship_graph" | "plot_points" | "timeline_summary" | null;
     const context = useContext(ModalContext) as ModalContextType | undefined;
@@ -170,7 +175,10 @@ const ProjectSelect = ({chapters, changeChapter}: {chapters: Chapter[]; changeCh
                   onSelect={(currentValue) => {
                     setValue(currentValue === value ? "" : currentValue)
                     setOpen(false)
-                    changeChapter(Number(currentValue))
+                    const selectedChapter = chaptersLocal.find(ch => ch.value === currentValue)
+                    if (selectedChapter) {
+                      changeChapter(selectedChapter.id)
+                    }
                   }}
                 >
                   {chapter.label}
