@@ -1,5 +1,5 @@
 // MermaidChart.tsx
-import React, { useEffect, useRef, useState, use, Suspense } from 'react';
+import React, { useState, use, Suspense } from 'react';
 import mermaid from 'mermaid';
 
 const themeCSS = `
@@ -64,14 +64,19 @@ mermaid.initialize({
 // Async function to render mermaid diagram
 async function renderMermaidDiagram(chart: string, isPreview: boolean = false) {
   const uniqueId = `mermaid-${isPreview ? 'preview' : 'diagram'}-${Math.random().toString(36).substr(2, 9)}`;
-  const svg = await mermaid.render(uniqueId, chart || "flowchart LR\nid1[(Database)]");
+  if (!chart) {
+    return { id: uniqueId, svg: "" };
+  }
+  const svg = await mermaid.render(uniqueId, chart);
   return { id: uniqueId, svg: svg };
 }
 
 // Component that renders the diagram using the use hook
 function MermaidRenderer({ diagramPromise, isPreview = false }: { diagramPromise: Promise<{id: string, svg: string}>, isPreview?: boolean }) {
   const diagram = use(diagramPromise);
-  
+  if (!diagram.svg) {
+    return <div></div>;
+  }
   return (
     <div 
       id={diagram.id} 
@@ -93,6 +98,10 @@ const MermaidChart = ({ chart }: MermaidChartProps) => {
       closeModal();
     }
   };
+
+  if (!chart) {
+    return <div></div>;
+  }
 
   return (
     <>
