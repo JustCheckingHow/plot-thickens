@@ -19,35 +19,24 @@ const Nav = ({
     currentChapter,
     updateStylePrompt,
     resetBook,
-    analyzeChapter,
-    chapterAnalyzeLoading,
-    setChapterAnalyzeLoading,
     analyzeGrammar,
     logicInspectChapters,
     analyzeText,
-    setCurrentChapter,
-    handleAddnewChapter,
-    removeChapter
 }: {
     chapters: Chapter[];
-    handleAddnewChapter: () => void;
     changeChapter: (chapter: number) => void;
     currentChapter: number;
     updateStylePrompt: (styleText: string) => void;
     resetBook: () => void;
-    analyzeChapter: (chapter: number) => void;
-    chapterAnalyzeLoading: boolean;
-    setChapterAnalyzeLoading: (loading: boolean) => void;
     analyzeGrammar: (chapter: number) => void;
     logicInspectChapters: (chapter: number) => Promise<void>;
     analyzeText: (chapter: number) => void;
-    setCurrentChapter: (chapter: number) => void;
-    removeChapter: (chapter: number) => void;
 }) => {
     type ModalVisibleType = "characters" | "locations" | "character_relationship_graph" | "plot_points" | "timeline_summary" | null;
     const context = useContext(ModalContext) as ModalContextType | undefined;
     if (!context) throw new Error("ModalContext is undefined. Make sure ModalProvider is in the component tree.");
     const { setModalVisible, modalVisible } = context;
+    const [loading, setLoading] = useState<"logic" | "grammy" | "style" | null>(null);
 
     console.log(currentChapter);
 
@@ -105,20 +94,32 @@ const Nav = ({
             </ul>
             <div style={{marginTop: "auto"}}>
               <div className="flex gap-2 mb-2">
-                <Button onClick={() => analyzeText(currentChapter)} disabled={chapterAnalyzeLoading}>
-                    {chapterAnalyzeLoading && <Loader2 className="animate-spin" />}
+                <Button onClick={() => {
+                  setLoading("style");
+                  analyzeText(currentChapter);
+                  setLoading(null);
+                }} disabled={loading === "style"}>
+                    {loading === "style" && <Loader2 className="animate-spin" />}
                     Analyze Style
                 </Button>
               </div>
               <div className="flex gap-2 mb-2">
-                <Button onClick={() => logicInspectChapters(currentChapter)} disabled={chapterAnalyzeLoading}>
-                    {chapterAnalyzeLoading && <Loader2 className="animate-spin" />}
+                <Button onClick={() => {
+                  setLoading("logic");
+                  logicInspectChapters(currentChapter);
+                  setLoading(null);
+                }} disabled={loading === "logic"}>
+                    {loading === "logic" && <Loader2 className="animate-spin" />}
                     Logic Inspect
                 </Button>
               </div>
               <div className="flex gap-2 mb-2">
-                <Button onClick={() => analyzeGrammar(currentChapter)} disabled={chapterAnalyzeLoading}>
-                    {chapterAnalyzeLoading && <Loader2 className="animate-spin" />}
+                <Button onClick={() => {
+                  setLoading("grammy");
+                  analyzeGrammar(currentChapter);
+                  setLoading(null);
+                }} disabled={loading === "grammy"}>
+                    {loading === "grammy" && <Loader2 className="animate-spin" />}
                     Analyze Grammar
                 </Button>
               </div>
@@ -138,7 +139,8 @@ const Nav = ({
 const ProjectSelect = ({chapters, changeChapter}: {chapters: Chapter[]; changeChapter: (chapter: number) => void}) => {
     const [open, setOpen] = useState(false)
     const [value, setValue] = useState("");
-    const [chaptersLocal, setChaptersLocal] = useState([]);
+    type ChapterOption = { id: number; label: string; value: string };
+const [chaptersLocal, setChaptersLocal] = useState<ChapterOption[]>([]);
     console.log(chaptersLocal)
     useEffect(() => {
       setChaptersLocal(chapters.map((chapter) => ({

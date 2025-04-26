@@ -14,9 +14,9 @@
 .comment{
     width: 100%;
     max-width: 320px;
-    background-color: rgba(123, 133, 123, .5);
+    background-color: rgba(123, 133, 123, .3);
     border: 1px solid #7b857b;
     border-radius: 6px;
-    position: sticky;
-    left: calc(100% + 24px);
+    position: fixed;
+    right: -30%;
 }
