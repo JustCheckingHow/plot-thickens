@@ -74,7 +74,7 @@ const DocumentView = () => {
         if (!grammarInspectLastMessage) return;
         const data = JSON.parse(grammarInspectLastMessage.data);
         if (data && data.original_text) {
-            const { original_text, comment } = data;
+            const { original_text, comment, suggestion } = data;
             const hash8byte = MD5(original_text).slice(0, 8);
             toast.success(comment);
             setChapters(prevChapters => {
@@ -88,7 +88,7 @@ const DocumentView = () => {
                     comments: {
                         ...newChapters[currentChapter].comments,
                         [hash8byte]: comment,
-                        [hash8byte + '_suggestion']: data.suggestion
+                        [hash8byte + '_suggestion']: suggestion
                     }
                 };
                 return newChapters;
