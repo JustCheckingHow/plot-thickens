@@ -10,9 +10,8 @@ import { Chapter } from "@/types/Chapter";
 import { StylePopup } from "../StylePopup/StylePopup";
 import logo from "@/assets/image/logo.svg"
 import ExportPopup from "../ExportPopup/ExportPopup";
-import { ModalContext, ModalContextType, ModalVisibleType } from "../../context/ModalContext";
+import { ModalContext, ModalContextType } from "../../context/ModalContext";
 // import logo from "@/public/logo.svg";
-import ModalBigScreen from "../ModalBigScreen/ModalBigScreen";
 
 const Nav = ({
     chapters,
@@ -40,6 +39,8 @@ const Nav = ({
     const context = useContext(ModalContext) as ModalContextType | undefined;
     if (!context) throw new Error("ModalContext is undefined. Make sure ModalProvider is in the component tree.");
     const { setModalVisible, modalVisible } = context;
+
+    console.log(currentChapter);
 
     const handleVisibleModal = (modal: ModalVisibleType) => {
         if(modalVisible === modal) {

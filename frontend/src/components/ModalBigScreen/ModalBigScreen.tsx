@@ -30,7 +30,7 @@ const ModalBigScreen = ({
                 <h2 className="text-2xl font-bold mb-4">
                     {modalDict[modalVisible][0]}
                 </h2>
-
+                
                 {chapters[currentChapter][modalDict[modalVisible][1]]}
             </div>
         </div>
