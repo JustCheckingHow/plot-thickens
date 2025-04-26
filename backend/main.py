@@ -137,13 +137,15 @@ async def storyboard(storyboard_request: FinalStoryboardRequest) -> Storyboard:
     chapter_character_summaries = ""
     chapter_location_summaries = ""
     chapter_timeline_summaries = ""
+    chapter_plotpoints_summaries = ""
     for chapter_storyboard in sorted(
         storyboard_request.chapter_storyboards, key=lambda x: x.chapter_number
     ):
         chapter_character_summaries += f"Chapter {chapter_storyboard.chapter_number}:\n{chapter_storyboard.character_summaries}\n"
         chapter_location_summaries += f"Chapter {chapter_storyboard.chapter_number}:\n{chapter_storyboard.location_summaries}\n"
         chapter_timeline_summaries += f"Chapter {chapter_storyboard.chapter_number}:\n{chapter_storyboard.timeline_summaries}\n"
-
+        chapter_plotpoints_summaries += f"Chapter {chapter_storyboard.chapter_number}:\n{chapter_storyboard.plotpoints_summaries}\n"
+        
     character_summaries = await storyboard_builder._extract_chapter_characters(
         f"Here are the character summaries for the book. Combine them into a single summary: {chapter_character_summaries}"
     )
@@ -152,6 +154,9 @@ async def storyboard(storyboard_request: FinalStoryboardRequest) -> Storyboard:
     )
     timeline_summaries = await storyboard_builder._build_timeline(
         f"Here are the timeline summaries for the book. Combine them into a single summary: {chapter_timeline_summaries}"
+    )
+    plotpoints_summaries = await storyboard_builder._extract_chapter_plotpoints(
+        f"Here are the plotpoints summaries for the book. Combine them into a single summary: {chapter_plotpoints_summaries}"
     )
     character_relationship_graph = (
         await storyboard_builder.create_character_relationship_graph(
@@ -163,6 +168,7 @@ async def storyboard(storyboard_request: FinalStoryboardRequest) -> Storyboard:
         "character_summaries": character_summaries,
         "location_summaries": location_summaries,
         "timeline_summaries": timeline_summaries,
+        "plotpoints_summaries": plotpoints_summaries,
     }
 
 
@@ -186,6 +192,7 @@ async def chapter_storyboard(chapter_request: ChapterRequest) -> Storyboard:
         "character_summaries": chapter_loc_char_summaries["character_summaries"],
         "location_summaries": chapter_loc_char_summaries["location_summaries"],
         "timeline_summaries": chapter_loc_char_summaries["timeline_summaries"],
+        "plotpoints_summaries": chapter_loc_char_summaries["plotpoints_summaries"],
         "chapter_number": chapter_request.chapter_number,
     }
 

@@ -4,10 +4,12 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import React, { useState } from 'react';
 import axiosInstance from '@/api/axios';
-import { Link, redirect } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 
 const Home: React.FC = () => {
   const [loading, setLoading] = useState(false);
+  const navigate = useNavigate();
+
 
   const handleFileUpload = async (file: File) => {
     const formData = new FormData();
@@ -19,9 +21,8 @@ const Home: React.FC = () => {
           'Content-Type': 'multipart/form-data'
         }
       });
-      if(response.data && response.data.style_prompt){
-        localStorage.setItem('styleText', response.data.style_prompt);
-        redirect('/document');
+      if(response.data && response.data.chapters){
+        navigate('/document', {state: {chapters: response.data.chapters, chapter_names: response.data.chapter_names || []}});
       }
       return response.data;
     } catch (error) {

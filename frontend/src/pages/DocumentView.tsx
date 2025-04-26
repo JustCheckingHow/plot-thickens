@@ -20,9 +20,10 @@ import { Label } from "@/components/ui/label";
 import { Check, Edit, Loader2 } from "lucide-react";
 import { MD5 } from "@/lib/utils";
 import ExportPopup from "@/components/ExportPopup/ExportPopup";
-
+import { useLocation } from "react-router-dom";
 
 const DocumentView = () => {
+    const { state } = useLocation();
     const { sendMessage, lastMessage } = useWebSocket(API_URL.replace(/^http/, "ws") + "/api/style-guard", {
         shouldReconnect: () => true
     });
@@ -36,6 +37,8 @@ const DocumentView = () => {
         "character_summary": "",
         "location_summary": "",
         "character_relationship_graph": "",
+        "timeline_summary": "",
+        "plotpoint_summary": "",
         "comments": {}
     }
     const [comment, setComment] = useState('');
@@ -48,7 +51,14 @@ const DocumentView = () => {
     const [chapterAnalyzeLoading, setChapterAnalyzeLoading] = useState(false);
 
     const textContainerRef = useRef<HTMLDivElement>(null);
-    const [currentView, setCurrentView] = useState<'character_summary' | 'location_summary' | 'character_relationship_graph' | 'comments'>('comments');
+    const [currentView, setCurrentView] = useState<'character_summary' | 'location_summary' | 'character_relationship_graph' | 'timeline_summary' | 'comments' | 'plotpoint_summary'>('comments');
+
+    useEffect(() => {
+        if (state && state.chapters) {
+            setChapters(state.chapters);
+            setCurrentChapter(0);
+        }
+    }, [state])
 
     useEffect(() => {
         const styleText = localStorage.getItem('styleText') || '';
@@ -210,6 +220,8 @@ const DocumentView = () => {
             order: prev.length,
             location_summary: '',
             character_relationship_graph: '',
+            timeline_summary: '',
+            plotpoint_summary: '',
             comments: {}
         }]);
         setCurrentChapter(chapters.length);
@@ -228,7 +240,9 @@ const DocumentView = () => {
                     ...newChapters[chapterNumber],
                     character_summary: response.data.character_summaries,
                     location_summary: response.data.location_summaries,
-                    character_relationship_graph: response.data.character_relationship_graph
+                    character_relationship_graph: response.data.character_relationship_graph,
+                    timeline_summary: response.data.timeline_summaries,
+                    plotpoint_summary: response.data.plotpoint_summaries
                 };
                 return newChapters;
             });
@@ -360,6 +374,12 @@ const DocumentView = () => {
                                     <MenubarTrigger onClick={() => setCurrentView('character_relationship_graph')}>Character Relationship Graph</MenubarTrigger>
                             </MenubarMenu>
                             <MenubarMenu>
+                                    <MenubarTrigger onClick={() => setCurrentView('timeline_summary')}>Timeline Summary</MenubarTrigger>
+                            </MenubarMenu>
+                            <MenubarMenu>
+                                    <MenubarTrigger onClick={() => setCurrentView('plotpoint_summary')}>Plot Points</MenubarTrigger>
+                            </MenubarMenu>
+                            <MenubarMenu>
                                     <MenubarTrigger onClick={() => setCurrentView('comments')}>Comments</MenubarTrigger>
                             </MenubarMenu>
                         </Menubar>
@@ -368,6 +388,26 @@ const DocumentView = () => {
                     {currentView === "location_summary" && <LocationSummary location_summary={chapters[currentChapter].location_summary}/>}
                     {currentView === "character_summary" && chapters[currentChapter].character_summary && <CharacterSummary character_summary={chapters[currentChapter].character_summary}/>}
                     {currentView === "character_relationship_graph" && chapters[currentChapter].character_relationship_graph ? <MermaidChart chart={chapters[currentChapter].character_relationship_graph}/> : <div>Loading...</div>}
+                    {currentView === "timeline_summary" && (
+                        <div className="mt-4">
+                            <h3 className="text-lg font-medium mb-2">Timeline Summary</h3>
+                            {chapters[currentChapter].timeline_summary ? (
+                                <p>{chapters[currentChapter].timeline_summary}</p>
+                            ) : (
+                                <p className="text-sm text-zinc-400">No timeline information available yet. Analyze the chapter first.</p>
+                            )}
+                        </div>
+                    )}
+                    {currentView === "plotpoint_summary" && (
+                        <div className="mt-4">
+                            <h3 className="text-lg font-medium mb-2">Plot Points</h3>
+                            {chapters[currentChapter].plotpoint_summary ? (
+                                <p>{chapters[currentChapter].plotpoint_summary}</p>
+                            ) : (
+                                <p className="text-sm text-zinc-400">No plot point information available yet. Analyze the chapter first.</p>
+                            )}
+                        </div>
+                    )}
                     {currentView === "comments" && (
                         <div>
                             <div className="flex gap-2 justify-center">
