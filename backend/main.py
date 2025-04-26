@@ -186,7 +186,12 @@ async def websocket_style_guard(websocket: WebSocket):
 
 @app.websocket("/api/logic-inspector")
 async def websocket_logic_inspector(websocket: WebSocket):
+    issues_found = False
+    
     async def send_comment(original_text, text_with_comments):
+        nonlocal issues_found
+        issues_found = True
+        logger.info(f"Issues found: {issues_found}")
         await websocket.send_json(
             {"original_text": original_text, "comment": text_with_comments}
         )
@@ -195,8 +200,8 @@ async def websocket_logic_inspector(websocket: WebSocket):
     await websocket.accept()
 
     # Create StyleGuard instance
-    style_guard = None
-
+    logic_inspector = None
+    
     try:
         while True:
             # Receive next message
@@ -217,8 +222,12 @@ async def websocket_logic_inspector(websocket: WebSocket):
             text = data.get("text", "")
 
             if not text:
-                await websocket.send_json({"error": "No text provided"})
-                continue
+                if "character_summaries" in data and "location_summaries" in data:
+                    await websocket.send_json({"status": "logic_inspector_initialized"})
+                    continue
+                else:
+                    await websocket.send_json({"error": "No text provided"})
+                    continue
 
             if logic_inspector is None:
                 await websocket.send_json({"error": "Logic inspector not initialized"})
@@ -228,6 +237,10 @@ async def websocket_logic_inspector(websocket: WebSocket):
             await logic_inspector.inspect_logic(text)
 
             logger.info("Text processed.")
+            
+            if not issues_found:
+                await websocket.send_json({"status": "no_issues_found"})
+                
             await websocket.send_json({"status": "done"})
 
     except WebSocketDisconnect:
