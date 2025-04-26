@@ -1,5 +1,6 @@
 from fastapi import FastAPI, Request, WebSocket, WebSocketDisconnect, Response
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi import UploadFile, HTTPException
 from writer_agents.style_inspector import StyleGuard
 from style_definer import StyleDefiner
 from writer_agents.logic_inspector import LogicInspector
@@ -8,6 +9,9 @@ from pydantic import BaseModel
 from typing import Optional, List
 from loguru import logger
 from exports.word_export import markdown_to_docx_with_comments, MarkdownToWordRequest
+from exports.word2mkdn import docx_to_markdown_chapters
+import tempfile
+
 import base64
 
 app = FastAPI()
@@ -46,6 +50,43 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
+@app.post("/api/docx-to-style")
+async def docx_to_style(file: UploadFile):
+    # Create a temporary file to store the uploaded content
+    with tempfile.NamedTemporaryFile(delete=False, suffix=".docx") as temp_file:
+        temp_file_path = temp_file.name
+        # Write the uploaded file content to the temporary file
+        content = await file.read()
+        temp_file.write(content)
+
+    try:
+        # Convert the docx file to markdown chapters
+        markdown_chapters = docx_to_markdown_chapters(temp_file_path)
+        markdown_chapters_str = "\n".join(markdown_chapters)
+
+        style_definer = StyleDefiner()
+        style_prompt = await style_definer.define_style(markdown_chapters_str)
+        return {"style_prompt": style_prompt}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+@app.post("/api/docx-to-markdown")
+async def docx_to_markdown(file: UploadFile):
+    # Create a temporary file to store the uploaded content
+    with tempfile.NamedTemporaryFile(delete=False, suffix=".docx") as temp_file:
+        temp_file_path = temp_file.name
+        # Write the uploaded file content to the temporary file
+        content = await file.read()
+        temp_file.write(content)
+
+    try:
+        # Convert the docx file to markdown chapters
+        markdown_chapters = docx_to_markdown_chapters(temp_file_path)
+        return {"chapters": markdown_chapters}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
 
 
 @app.post("/api/markdown-to-docx-with-comments")

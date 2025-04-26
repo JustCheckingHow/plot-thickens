@@ -6,3 +6,4 @@ loguru==0.7.3
 opik==1.7.11
 websockets==15.0.1
 bayoo-docx==0.2.20
+python-multipart==0.0.20
