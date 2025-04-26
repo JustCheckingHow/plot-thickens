@@ -92,7 +92,7 @@ const MermaidChart = ({ chart }: MermaidChartProps) => {
 
   const openModal = () => setIsOpen(true);
   const closeModal = () => setIsOpen(false);
-  
+  console.log(chart)
   // Handle clicking outside to close
   const handleOutsideClick = (e: React.MouseEvent<HTMLDivElement>) => {
     if (e.target === e.currentTarget) {

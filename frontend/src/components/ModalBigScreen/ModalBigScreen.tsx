@@ -33,7 +33,7 @@ const ModalBigScreen = ({
                     {modalDict[modalVisible][0]}
                 </h2>
                 {modalVisible === "character_relationship_graph" ? (
-                  <MermaidChart content={chapters[currentChapter][modalDict[modalVisible][1]]} />
+                  <MermaidChart chart={chapters[currentChapter][modalDict[modalVisible][1]]} />
                 ) : (
                   <MarkdownRenderer content={chapters[currentChapter][modalDict[modalVisible][1]]} />
                 )}
