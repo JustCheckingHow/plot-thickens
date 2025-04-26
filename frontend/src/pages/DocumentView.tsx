@@ -21,9 +21,10 @@ import { Check, Edit, Loader2 } from "lucide-react";
 import { MD5 } from "@/lib/utils";
 import ExportPopup from "@/components/ExportPopup/ExportPopup";
 import MarkdownRenderer from "@/components/MarkdownRenderer";
-
+import { useLocation } from "react-router-dom";
 
 const DocumentView = () => {
+    const { state } = useLocation();
     const { sendMessage, lastMessage } = useWebSocket(API_URL.replace(/^http/, "ws") + "/api/style-guard", {
         shouldReconnect: () => true
     });
@@ -52,6 +53,23 @@ const DocumentView = () => {
 
     const textContainerRef = useRef<HTMLDivElement>(null);
     const [currentView, setCurrentView] = useState<'character_summary' | 'location_summary' | 'character_relationship_graph' | 'timeline_summary' | 'comments' | 'plotpoint_summary'>('comments');
+
+    useEffect(() => {
+        if (state && state.chapters) {
+            setChapters(state.chapters.map((text, index) : {text: string, title: string, order: number} => ({
+                "text": text,
+                "title": state.chapter_names[index],
+                "order": index,
+                "character_summary": "",
+                "location_summary": "",
+                "character_relationship_graph": "",
+                "timeline_summary": "",
+                "plotpoint_summary": "",
+                "comments": {}
+            })));
+            setCurrentChapter(0);
+        }
+    }, [state])
 
     useEffect(() => {
         const styleText = localStorage.getItem('styleText') || '';
