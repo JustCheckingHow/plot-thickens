@@ -19,30 +19,18 @@ const Nav = ({
     currentChapter,
     updateStylePrompt,
     resetBook,
-    analyzeChapter,
-    chapterAnalyzeLoading,
-    setChapterAnalyzeLoading,
     analyzeGrammar,
     logicInspectChapters,
     analyzeText,
-    setCurrentChapter,
-    handleAddnewChapter,
-    removeChapter
 }: {
     chapters: Chapter[];
-    handleAddnewChapter: () => void;
     changeChapter: (chapter: number) => void;
     currentChapter: number;
     updateStylePrompt: (styleText: string) => void;
     resetBook: () => void;
-    analyzeChapter: (chapter: number) => void;
-    chapterAnalyzeLoading: boolean;
-    setChapterAnalyzeLoading: (loading: boolean) => void;
     analyzeGrammar: (chapter: number) => void;
     logicInspectChapters: (chapter: number) => Promise<void>;
     analyzeText: (chapter: number) => void;
-    setCurrentChapter: (chapter: number) => void;
-    removeChapter: (chapter: number) => void;
 }) => {
     type ModalVisibleType = "characters" | "locations" | "character_relationship_graph" | "plot_points" | "timeline_summary" | null;
     const context = useContext(ModalContext) as ModalContextType | undefined;

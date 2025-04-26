@@ -86,7 +86,8 @@ const TextView = ({chapters, setChapters, currentChapter, analyzeText, handleAdd
                 <Label htmlFor="chapter-title">Chapter Title</Label>
                 <Input
                     style={{fontSize: "32px"}}
-                    id="chapter-title" className="heading__h2 text-4xl mt-2 font-bold mb-4" value={chapters[currentChapter].title || ""} placeholder="Chapter title" onChange={(e) => setChapters(prev => {
+                    id="chapter-title" className="heading__h2 text-4xl mt-2 font-bold mb-4" value={chapters[currentChapter].title || ""} 
+                    placeholder="Chapter title" onChange={(e) => setChapters(prev => {
                     const newChapters = [...prev];
                     newChapters[currentChapter] = {
                         ...newChapters[currentChapter],
