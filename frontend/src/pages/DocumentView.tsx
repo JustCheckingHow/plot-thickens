@@ -269,7 +269,7 @@ const DocumentView = () => {
     const refineChapter = async (chapterNumber: number) => {
         setChapterAnalyzeLoading(true);
 
-        await axiosInstance.post('api/incremental-storyboard', {
+        const response = await axiosInstance.post('api/incremental-storyboard', {
             chapter_text: chapters[chapterNumber].text,
             chapter_number: chapters[chapterNumber].order,
             previous_storyboards: chapters.slice(0, chapterNumber).map(chapter => ({
@@ -281,24 +281,35 @@ const DocumentView = () => {
                 plotpoints_summaries: chapter.plotpoint_summary
             }))
         }).then((response) => {
+            const newChapterResponse: Chapter = {
+                character_summary: response.data.character_summaries,
+                location_summary: response.data.location_summaries,
+                character_relationship_graph: response.data.character_relationship_graph,
+                timeline_summary: response.data.timeline_summaries,
+                plotpoint_summary: response.data.plotpoints_summaries,
+                text: chapters[chapterNumber].text,
+                title: chapters[chapterNumber].title,
+                order: chapters[chapterNumber].order,
+                comments: chapters[chapterNumber].comments
+            }
+
             setChapters(prev => {
                 const newChapters = [...prev];
                 newChapters[chapterNumber] = {
                     ...newChapters[chapterNumber],
-                    character_summary: response.data.character_summaries,
-                    location_summary: response.data.location_summaries,
-                    character_relationship_graph: response.data.character_relationship_graph,
-                    timeline_summary: response.data.timeline_summaries,
-                    plotpoint_summary: response.data.plotpoints_summaries
+                    ...newChapterResponse
                 };
                 return newChapters;
             });
             setChapterAnalyzeLoading(false);
             toast.success('Chapter refined');
+            return newChapterResponse;
         }).catch(() => {
             setChapterAnalyzeLoading(false);
             toast.error('Failed to refine chapter');
+            return chapters[chapterNumber];
         })
+        return response;
     }
 
     const resetBook = () => {
@@ -342,18 +353,23 @@ const DocumentView = () => {
         let location_summaries = "";
 
         for(let i = 0; i < chapterNumber; i++){
+            let response: Chapter = chapters[i];
             if(chapters[i].character_summary == "" || chapters[i].location_summary == ""){
-                await refineChapter(i);
+                response = await refineChapter(i);
             }
-            console.log("Adding character summary", i);
-            character_summaries += chapters[i].character_summary;
-            location_summaries += chapters[i].location_summary;
+            console.log("Adding character summary", response);
+            character_summaries += response.character_summary;
+            location_summaries += response.location_summary;
+        }
+
+        if (chapters[chapterNumber].character_summary == "" || chapters[chapterNumber].location_summary == ""){
+            await refineChapter(chapterNumber);
         }
 
         await logicInspect(JSON.stringify({
             character_summaries: character_summaries,
             location_summaries: location_summaries,
-            text: chapters[currentChapter].text
+            text: chapters[chapterNumber].text
         }));
     }
 
@@ -458,8 +474,14 @@ const DocumentView = () => {
                     {currentView === "comments" && (
                         <div>
                             <div className="flex gap-2 justify-center">
-                                <Button onClick={() => analyzeText(currentChapter)}>Style text Analyze</Button>
-                                {currentChapter > 0 && <Button onClick={() => logicInspectChapters(currentChapter)}>Logic inspect</Button>}
+                                <Button onClick={() => analyzeText(currentChapter)} disabled={chapterAnalyzeLoading}>
+                                    {chapterAnalyzeLoading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                                    Style text Analyze
+                                </Button>
+                                {currentChapter > 0 && <Button onClick={() => logicInspectChapters(currentChapter)} disabled={chapterAnalyzeLoading}>
+                                    {chapterAnalyzeLoading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                                    Logic inspect
+                                </Button>}
                             </div>
                             <div className="mt-4 p-3 bg-zinc-700 rounded-md">
                                 <h3 className="text-sm font-medium mb-1">Feedback:</h3>
