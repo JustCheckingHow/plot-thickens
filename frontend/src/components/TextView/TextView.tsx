@@ -94,7 +94,7 @@ const TextView = ({chapters, setChapters, currentChapter, analyzeText, handleAdd
             observer.disconnect();
         };
     }, [chapters[currentChapter].comments]);
-    
+    //@ts-ignore
     const applySuggestion = (commentId: string) => {
         const hash8byte = MD5(activeTextSelection).slice(0, 8);
         toast.success("Suggestion applied");
