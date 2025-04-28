@@ -382,7 +382,7 @@ async def websocket_logic_inspector(websocket: WebSocket):
     async def send_comment(original_text, text_with_comments):
         nonlocal issues_found
         issues_found = True
-        logger.info(f"Issues found: {issues_found}")
+        logger.info(f"Issues found: {text_with_comments} ({original_text})")
         await websocket.send_json(
             {
                 "original_text": original_text,

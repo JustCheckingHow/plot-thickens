@@ -27,7 +27,7 @@ const ModalBigScreen = ({
     if (!modalVisible) return null;
     console.log(chapters[currentChapter])
     return (
-        <div className={"modal-big-screen py-8 " + (modalVisible ? "open" : "")}>
+        <div className={"modal-big-screen py-8 " + (modalVisible ? "open" : "")}  style={{overflowY: "scroll", height: "100vh"}} >
             <div className="container">
                 
                 <h2 className="text-2xl font-bold mb-4">

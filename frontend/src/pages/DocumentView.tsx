@@ -294,7 +294,10 @@ const DocumentView = () => {
         <div className="w-full flex " style={{paddingLeft: "240px"}}>
             <Nav
                 chapters={chapters}
-                changeChapter={(chapterIndex) => setCurrentChapter(chapterIndex)}
+                changeChapter={(chapterIndex) => {
+                    console.log("Changing chapter", chapterIndex);
+                    setCurrentChapter(chapterIndex)
+                }}
                 currentChapter={currentChapter}
                 updateStylePrompt={updateStylePrompt}
                 logicInspectChapters={logicInspectChapters}

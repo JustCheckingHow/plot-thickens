@@ -68,8 +68,14 @@ async function renderMermaidDiagram(chart: string, isPreview: boolean = false) {
   if (!chart) {
     return { id: uniqueId, svg: "" };
   }
-  const svg = await mermaid.render(uniqueId, chart);
-  return { id: uniqueId, svg: svg };
+  
+  try {
+    const svg = await mermaid.render(uniqueId, chart);
+    return { id: uniqueId, svg: svg };
+  } catch (error) {
+    console.error("Failed to render mermaid diagram:", error);
+    return { id: uniqueId, svg: "" };
+  }
 }
 
 // Component that renders the diagram using the use hook

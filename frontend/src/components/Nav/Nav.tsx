@@ -178,7 +178,7 @@ const ProjectSelect = ({chapters, changeChapter}: {chapters: Chapter[]; changeCh
           className="w-[200px] justify-between w-full"
         >
           {value
-            ? chaptersLocal.find((chapter) => chapter.value === value)?.label
+            ? chaptersLocal.find((chapter) => chapter.value.trim() === value.trim())?.label
             : "Select chapter..."}
           <ChevronsUpDown className="opacity-50" />
         </Button>
@@ -196,7 +196,7 @@ const ProjectSelect = ({chapters, changeChapter}: {chapters: Chapter[]; changeCh
                   onSelect={(currentValue) => {
                     setValue(currentValue === value ? "" : currentValue)
                     setOpen(false)
-                    const selectedChapter = chaptersLocal.find(ch => ch.value === currentValue)
+                    const selectedChapter = chaptersLocal.find(ch => ch.value.trim() === currentValue.trim())
                     if (selectedChapter) {
                       changeChapter(selectedChapter.id)
                     }
