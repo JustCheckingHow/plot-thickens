@@ -123,13 +123,19 @@ const DocumentView = () => {
             setChapters(prevChapters => {
 
                 console.log("Replacing text", original_text, "with", comment);
+
+                console.log("Is text present in the chapter?", prevChapters[selectedChapter].text.includes(original_text));
+
+                const newText = prevChapters[selectedChapter].text.replace(
+                    original_text,
+                    `<comment id=${hash8byte}>${original_text}</comment>`
+                );
+
+
                 const newChapters = [...prevChapters];
                 newChapters[selectedChapter] = {
                     ...newChapters[selectedChapter],
-                    text: newChapters[selectedChapter].text.replace(
-                        original_text,
-                        `<comment id=${hash8byte}>${original_text}</comment>`
-                    ),
+                    text: newText,
                     comments: {
                         ...newChapters[selectedChapter].comments,
                         [hash8byte]: comment,
@@ -291,6 +297,7 @@ const DocumentView = () => {
     const logicInspectChapters = async (chapterNumber: number) => {
         let character_summary = "";
         let location_summary = "";
+        let style = localStorage.getItem('styleText') || '';
         setBlocked(true);
 
         for(let i = 0; i < chapterNumber; i++){
@@ -303,7 +310,8 @@ const DocumentView = () => {
                     character_summary: character_summary,
                     location_summary: location_summary,
                     text: chapters[i].text,
-                    chapter: i
+                    chapter: i,
+                    style: style
                 }));
             }
             console.log("Adding character summary", response);

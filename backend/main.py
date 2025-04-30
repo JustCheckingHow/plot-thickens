@@ -380,17 +380,20 @@ async def websocket_grammar_inspector(websocket: WebSocket):
 async def websocket_logic_inspector(websocket: WebSocket):
     issues_found = False
 
-    async def send_comment(original_text, text_with_comments):
-        nonlocal issues_found
-        issues_found = True
-        logger.info(f"Issues found: {text_with_comments} ({original_text})")
-        await websocket.send_json(
-            {
-                "original_text": original_text,
-                "comment": text_with_comments,
-            }
-        )
-        return text_with_comments
+    def send_comment(chapterNumber):
+        async def _inner(original_text, text_with_comments):
+            nonlocal issues_found
+            issues_found = True
+            logger.info(f"Issues found: {text_with_comments} ({original_text})")
+            await websocket.send_json(
+                {
+                    "original_text": original_text,
+                    "comment": text_with_comments,
+                    "chapterNumber": chapterNumber
+                }
+            )
+            return text_with_comments
+        return _inner
 
     await websocket.accept()
 
@@ -401,6 +404,7 @@ async def websocket_logic_inspector(websocket: WebSocket):
         while True:
             # Receive next message
             data = await websocket.receive_json()
+            style = data.get("style", "")
 
             # Check if style_prompt is provided in this message
             if "character_summary" in data and "location_summary" in data:
@@ -410,7 +414,8 @@ async def websocket_logic_inspector(websocket: WebSocket):
                 logic_inspector = LogicInspector(
                     character_summary=character_summary,
                     location_summary=location_summary,
-                    callback=send_comment,
+                    callback=send_comment(data.get("chapter", None)),
+                    style=style
                 )
 
             # Get text for checking
