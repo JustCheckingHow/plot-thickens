@@ -38,6 +38,8 @@ const DocumentView = () => {
 //@ts-ignore
     const pendingSubcommentsRef = useRef<Record<string, Set<string>>>({});
 
+    const [blocked, setBlocked] = useState(false);
+
 
     useEffect(() => {
         if (state && state.chapters) {
@@ -76,6 +78,8 @@ const DocumentView = () => {
     useEffect(() => {
         if (!grammarInspectLastMessage) return;
         const data = JSON.parse(grammarInspectLastMessage.data);
+        console.log(data);
+
         if (data && data.original_text) {
             const { original_text, comment, suggestion } = data;
             const hash8byte = MD5(original_text).slice(0, 8);
@@ -97,6 +101,14 @@ const DocumentView = () => {
                 return newChapters;
             });
         }
+        if (data && data.status === "done") {
+            toast.success("Grammar analysis done");
+            setBlocked(false);
+        }
+        if (data && data.error) {
+            toast.error(data.error);
+            setBlocked(false);
+        }
     }, [grammarInspectLastMessage])
     
 
@@ -106,17 +118,20 @@ const DocumentView = () => {
         if (data && data.original_text) {
             const { original_text, comment } = data;
             const hash8byte = MD5(original_text).slice(0, 8);
+            const selectedChapter = data.chapterNumber;
             toast.success("New comment added");
             setChapters(prevChapters => {
+
+                console.log("Replacing text", original_text, "with", comment);
                 const newChapters = [...prevChapters];
-                newChapters[currentChapter] = {
-                    ...newChapters[currentChapter],
-                    text: newChapters[currentChapter].text.replace(
+                newChapters[selectedChapter] = {
+                    ...newChapters[selectedChapter],
+                    text: newChapters[selectedChapter].text.replace(
                         original_text,
                         `<comment id=${hash8byte}>${original_text}</comment>`
                     ),
                     comments: {
-                        ...newChapters[currentChapter].comments,
+                        ...newChapters[selectedChapter].comments,
                         [hash8byte]: comment,
                         [hash8byte + '_suggestion']: data.suggestion
                     }
@@ -153,8 +168,13 @@ const DocumentView = () => {
         if (data && data.status === "style_prompt_updated") {
             toast.success("Style text updated");
         }
+        if (data && data.status === "style_done") {
+            toast.success("Style analysis done");
+            setBlocked(false);
+        }
         if (data && data.error) {
             toast.error(data.error);
+            setBlocked(false);
         }
     }, [lastMessage]);
 
@@ -168,12 +188,14 @@ const DocumentView = () => {
     }
 
     const analyzeText = async (chapterNumber: number) => {
+        setBlocked(true);
         await sendMessage(JSON.stringify({
             "text": chapters[chapterNumber].text
         }));
     }
 
     const analyzeGrammar = async (chapterNumber: number) => {
+        setBlocked(true);
         console.log("Analyzing grammar");
         await grammarInspect(JSON.stringify({
             "text": chapters[chapterNumber].text
@@ -268,11 +290,20 @@ const DocumentView = () => {
     const logicInspectChapters = async (chapterNumber: number) => {
         let character_summary = "";
         let location_summary = "";
+        setBlocked(true);
 
         for(let i = 0; i < chapterNumber; i++){
             let response: Chapter = chapters[i];
             if(chapters[i].character_summary == "" || chapters[i].location_summary == ""){
                 response = await refineChapter(i);
+                toast.success("Refined chapter");
+                toast.info("Inspecting logic for chapter " + i);
+                await logicInspect(JSON.stringify({
+                    character_summary: character_summary,
+                    location_summary: location_summary,
+                    text: chapters[i].text,
+                    chapter: i
+                }));
             }
             console.log("Adding character summary", response);
             character_summary += response.character_summary;
@@ -286,8 +317,10 @@ const DocumentView = () => {
         await logicInspect(JSON.stringify({
             character_summary: character_summary,
             location_summary: location_summary,
-            text: chapters[chapterNumber].text
+            text: chapters[chapterNumber].text,
+            chapter: chapterNumber
         }));
+        setBlocked(false);
     }
 
     return (
@@ -303,6 +336,7 @@ const DocumentView = () => {
                 logicInspectChapters={logicInspectChapters}
                 analyzeGrammar={analyzeGrammar}
                 analyzeText={analyzeText}
+                blocked={blocked}
             />
             <div className="content container">
                 <TextView

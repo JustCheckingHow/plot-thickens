@@ -265,6 +265,7 @@ async def websocket_style_guard(websocket: WebSocket):
     async def send_comment(original_text, text_with_comments, suggestion):
         nonlocal issues_found
         issues_found = True
+        logger.info(f"Issues found: {text_with_comments} ({original_text})")
         await websocket.send_json(
             {
                 "original_text": original_text,
@@ -313,7 +314,7 @@ async def websocket_style_guard(websocket: WebSocket):
             logger.info("Text processed.")
             if not issues_found:
                 await websocket.send_json({"status": "no_issues_found"})
-            await websocket.send_json({"status": "done"})
+            await websocket.send_json({"status": "style_done"})
 
     except WebSocketDisconnect:
         pass
@@ -417,14 +418,14 @@ async def websocket_logic_inspector(websocket: WebSocket):
 
             if not text:
                 if "character_summary" in data and "location_summary" in data:
-                    await websocket.send_json({"status": "logic_inspector_initialized"})
+                    await websocket.send_json({"status": "logic_inspector_initialized", "chapterNumber": data.get("chapter", None)})
                     continue
                 else:
-                    await websocket.send_json({"error": "No text provided"})
+                    await websocket.send_json({"error": "No text provided", "chapterNumber": data.get("chapter", None)})
                     continue
 
             if logic_inspector is None:
-                await websocket.send_json({"error": "Logic inspector not initialized"})
+                await websocket.send_json({"error": "Logic inspector not initialized", "chapterNumber": data.get("chapter", None)})
                 continue
 
             # Process the text
@@ -433,9 +434,9 @@ async def websocket_logic_inspector(websocket: WebSocket):
             logger.info("Text processed.")
 
             if not issues_found:
-                await websocket.send_json({"status": "no_issues_found"})
+                await websocket.send_json({"status": "no_issues_found", "chapterNumber": data.get("chapter", None)})
 
-            await websocket.send_json({"status": "done"})
+            await websocket.send_json({"status": "done", "chapterNumber": data.get("chapter", None)})
 
     except WebSocketDisconnect:
         pass

@@ -21,6 +21,7 @@ const Nav = ({
     analyzeGrammar,
     logicInspectChapters,
     analyzeText,
+    blocked,
 }: {
     chapters: Chapter[];
     changeChapter: (chapter: number) => void;
@@ -29,6 +30,7 @@ const Nav = ({
     analyzeGrammar: (chapter: number) => void;
     logicInspectChapters: (chapter: number) => Promise<void>;
     analyzeText: (chapter: number) => void;
+    blocked: boolean;
 }) => {
     type ModalVisibleType = "characters" | "locations" | "character_relationship_graph" | "plot_points" | "timeline_summary" | null;
     const context = useContext(ModalContext) as ModalContextType | undefined;
@@ -36,6 +38,7 @@ const Nav = ({
     const { setModalVisible, modalVisible } = context;
     const [loading, setLoading] = useState<"logic" | "grammy" | "style" | null>(null);
 
+    console.log("Loading", loading);
 
     const handleVisibleModal = (modal: ModalVisibleType) => {
         if(modalVisible === modal) {
@@ -90,17 +93,19 @@ const Nav = ({
               </li>
             </ul>
             <div style={{marginTop: "auto"}}>
-              <div className="flex gap-2 mb-2">
+            <div className="flex gap-2 mb-2">
                 <Button onClick={async() => {
                   try {
                     setLoading("style");
+                    console.log("Analyzing style for chapter", currentChapter);
                     await analyzeText(currentChapter);
+                    console.log("Analysis ended for chapter", currentChapter);
                   } catch (error) {
                     console.error("Error during style analysis:", error);
                   } finally {
                     setLoading(null);
                   }
-                }} disabled={loading !== null}>
+                }} disabled={loading !== null || blocked} className="w-full">
                   {loading === "style" ? (
                     <><Loader2 className="h-4 w-4 animate-spin mr-2" /> Analyzing Style...</>
                   ) : (
@@ -112,16 +117,14 @@ const Nav = ({
                 <Button onClick={async() => {
                   try {
                     setLoading("grammy");
+                    console.log("Analyzing grammar for chapter", currentChapter);
                     await analyzeGrammar(currentChapter);
-                    setTimeout(() => {
-                      setLoading(null);
-                    }, 2000);
                   } catch (error) {
                     console.error("Error during grammar analysis:", error);
                   } finally {
                     setLoading(null);
                   }
-                }} disabled={loading !== null}>
+                }} disabled={loading !== null || blocked} className="w-full">
                   {loading === "grammy" ? (
                     <><Loader2 className="h-4 w-4 animate-spin mr-2" /> Analyzing Grammar...</>
                   ) : (
@@ -130,18 +133,18 @@ const Nav = ({
                 </Button>
                 <ExportPopup content={chapters.map(chapter => "# " + chapter.title + "\n\n" + chapter.text).join('\n\n')} comments={chapters.map(chapter => chapter.comments).reduce((acc, curr) => ({...acc, ...curr}), {})} />
               </div>
-
               <div className="flex gap-2 mb-2">
                 <Button onClick={async() => {
                   try {
                     setLoading("logic");
+                    console.log("Logic inspecting chapter", currentChapter);
                     await logicInspectChapters(currentChapter);
                   } catch (error) {
                     console.error("Error during logic inspection:", error);
                   } finally {
                     setLoading(null);
                   }
-                }} disabled={loading !== null} className="w-full cursor-pointer dark:bg-zinc-300 hover:bg-zinc-100 dark:hover:bg-zinc-400">
+                }} disabled={loading !== null || blocked} className="w-full cursor-pointer dark:bg-zinc-300 hover:bg-zinc-100 dark:hover:bg-zinc-400">
                   {loading === "logic" ? (
                     <><Loader2 className="h-4 w-4 animate-spin mr-2" /> Inspecting Logic...</>
                   ) : (
