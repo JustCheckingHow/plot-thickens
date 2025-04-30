@@ -149,6 +149,7 @@ const DocumentView = () => {
             const { original_text, comment } = data;
             const hash8byte = MD5(original_text).slice(0, 8);
             toast.success("New comment added");
+            console.log("Replacing text", original_text, "with", comment);
             setChapters(prevChapters => {
                 const newChapters = [...prevChapters];
                 newChapters[currentChapter] = {
