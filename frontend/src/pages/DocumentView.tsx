@@ -84,8 +84,12 @@ const DocumentView = () => {
             const { original_text, comment, suggestion } = data;
             const hash8byte = MD5(original_text).slice(0, 8);
             toast.success(comment);
+            
             setChapters(prevChapters => {
                 const newChapters = [...prevChapters];
+
+                console.log("Is text present in the chapter?", prevChapters[currentChapter].text.includes(original_text));
+
                 newChapters[currentChapter] = {
                     ...newChapters[currentChapter],
                     text: newChapters[currentChapter].text.replace(
@@ -156,8 +160,11 @@ const DocumentView = () => {
             const hash8byte = MD5(original_text).slice(0, 8);
             toast.success("New comment added");
             console.log("Replacing text", original_text, "with", comment);
+
             setChapters(prevChapters => {
                 const newChapters = [...prevChapters];
+                console.log("Is text present in the chapter?", prevChapters[currentChapter].text.includes(original_text));
+
                 newChapters[currentChapter] = {
                     ...newChapters[currentChapter],
                     text: newChapters[currentChapter].text.replace(

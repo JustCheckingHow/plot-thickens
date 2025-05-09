@@ -53,7 +53,7 @@ def insert_comment(callback: Union[Callable, Awaitable]) -> Callable:
         Insert a comment into the text at the given position.
 
         Args:
-            text: The text to insert the comment into.
+            text: The text to insert the comment into. This should be letter to letter original text, without any paragraph breaks or ellipses.
             comment: The comment to insert.
         Returns:
             The text with the comment inserted.
